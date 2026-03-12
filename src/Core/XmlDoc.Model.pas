@@ -30,6 +30,7 @@ type
 
     procedure DoChanged;
     function  EscapeXml(const AText: string): string;
+    function  ExtractInlineContent(const ANode: IXMLNode): string;
     function  ExtractNodeText(const ANode: IXMLNode): string;
     function  GetIsEmpty: Boolean;
     procedure ParseChildNodes(const AParentNode: IXMLNode);
@@ -263,6 +264,55 @@ begin
   end;
 end;
 
+function TXmlDocModel.ExtractInlineContent(const ANode: IXMLNode): string;
+var
+  LSB: TStringBuilder;
+  I: Integer;
+  LChild: IXMLNode;
+begin
+  LSB := TStringBuilder.Create;
+  try
+    for I := 0 to ANode.ChildNodes.Count - 1 do
+    begin
+      LChild := ANode.ChildNodes[I];
+
+      if LChild.NodeType = ntText then
+        LSB.Append(LChild.Text)
+      else if LChild.NodeName = 'c' then
+        LSB.AppendFormat('<c>%s</c>', [EscapeXml(LChild.Text)])
+      else if LChild.NodeName = 'see' then
+      begin
+        if LChild.HasAttribute('cref') then
+          LSB.AppendFormat('<see cref="%s">%s</see>', [
+            EscapeXml(LChild.Attributes['cref']),
+            EscapeXml(LChild.Text)])
+        else
+          LSB.Append(LChild.Text);
+      end
+      else if LChild.NodeName = 'paramref' then
+      begin
+        if LChild.HasAttribute('name') then
+          LSB.AppendFormat('<paramref name="%s"/>', [EscapeXml(LChild.Attributes['name'])])
+        else
+          LSB.Append(LChild.Text);
+      end
+      else if LChild.NodeName = 'typeparamref' then
+      begin
+        if LChild.HasAttribute('name') then
+          LSB.AppendFormat('<typeparamref name="%s"/>', [EscapeXml(LChild.Attributes['name'])])
+        else
+          LSB.Append(LChild.Text);
+      end
+      else
+        LSB.Append(LChild.Text);
+    end;
+
+    Result := LSB.ToString;
+  finally
+    LSB.Free;
+  end;
+end;
+
 function TXmlDocModel.ExtractNodeText(const ANode: IXMLNode): string;
 var
   LSB: TStringBuilder;
@@ -283,7 +333,7 @@ begin
 
   if not LHasPara then
   begin
-    Result := TrimDocText(ANode.Text);
+    Result := Trim(ExtractInlineContent(ANode));
     Exit;
   end;
 
@@ -296,7 +346,7 @@ begin
       begin
         if LSB.Length > 0 then
           LSB.AppendLine;
-        LSB.Append(Trim(LChild.Text));
+        LSB.Append(Trim(ExtractInlineContent(LChild)));
       end;
     end;
 
@@ -375,7 +425,7 @@ begin
       LParam := Default(TParamDoc);
       if LNode.HasAttribute('name') then
         LParam.Name := LNode.Attributes['name'];
-      LParam.Description := TrimDocText(LNode.Text);
+      LParam.Description := Trim(ExtractInlineContent(LNode));
       FParams.Add(LParam);
     end
 
@@ -384,7 +434,7 @@ begin
       LTypeParam := Default(TTypeParamDoc);
       if LNode.HasAttribute('name') then
         LTypeParam.Name := LNode.Attributes['name'];
-      LTypeParam.Description := TrimDocText(LNode.Text);
+      LTypeParam.Description := Trim(ExtractInlineContent(LNode));
       FTypeParams.Add(LTypeParam);
     end
 
@@ -393,7 +443,7 @@ begin
       LException := Default(TExceptionDoc);
       if LNode.HasAttribute('cref') then
         LException.TypeRef := LNode.Attributes['cref'];
-      LException.Description := TrimDocText(LNode.Text);
+      LException.Description := Trim(ExtractInlineContent(LNode));
       FExceptions.Add(LException);
     end
 
@@ -580,7 +630,7 @@ begin
     begin
       LSB.AppendFormat('<param name="%s">%s</param>', [
         EscapeXml(FParams[I].Name),
-        EscapeXml(FParams[I].Description)
+        FParams[I].Description
       ]);
       LSB.AppendLine;
     end;
@@ -589,20 +639,20 @@ begin
     begin
       LSB.AppendFormat('<typeparam name="%s">%s</typeparam>', [
         EscapeXml(FTypeParams[I].Name),
-        EscapeXml(FTypeParams[I].Description)
+        FTypeParams[I].Description
       ]);
       LSB.AppendLine;
     end;
 
     if FReturns <> '' then
     begin
-      LSB.AppendFormat('<returns>%s</returns>', [EscapeXml(FReturns)]);
+      LSB.AppendFormat('<returns>%s</returns>', [FReturns]);
       LSB.AppendLine;
     end;
 
     if FValue <> '' then
     begin
-      LSB.AppendFormat('<value>%s</value>', [EscapeXml(FValue)]);
+      LSB.AppendFormat('<value>%s</value>', [FValue]);
       LSB.AppendLine;
     end;
 
@@ -612,7 +662,7 @@ begin
       begin
         LSB.AppendFormat('<exception cref="%s">', [EscapeXml(FExceptions[I].TypeRef)]);
         LSB.AppendLine;
-        LSB.AppendLine(EscapeXml(FExceptions[I].Description));
+        LSB.AppendLine(FExceptions[I].Description);
         LSB.AppendLine('</exception>');
       end
       else
@@ -630,7 +680,7 @@ begin
         LSB.Append('<example>');
       LSB.AppendLine;
       if FExamples[I].Description <> '' then
-        LSB.AppendLine(EscapeXml(FExamples[I].Description));
+        LSB.AppendLine(FExamples[I].Description);
       if FExamples[I].Code <> '' then
       begin
         LSB.AppendLine('<code>');
@@ -646,7 +696,7 @@ begin
       begin
         LSB.AppendFormat('<seealso cref="%s">%s</seealso>', [
           EscapeXml(FSeeAlso[I].Cref),
-          EscapeXml(FSeeAlso[I].Description)
+          FSeeAlso[I].Description
         ]);
       end
       else
@@ -706,9 +756,10 @@ var
   LLine: string;
 begin
   // 멀티라인이면 각 라인을 <para>로 감싸기
+  // 인라인 XML 태그(<c>, <see>, <paramref>, <typeparamref>)는 이미 적절히 이스케이프되어 있으므로 재이스케이프 불필요
   if not AText.Contains(#10) and not AText.Contains(#13) then
   begin
-    Result := EscapeXml(AText);
+    Result := AText;
     Exit;
   end;
 
@@ -723,7 +774,7 @@ begin
 
       if LSB.Length > 0 then
         LSB.AppendLine;
-      LSB.Append('<para>' + EscapeXml(LLine) + '</para>');
+      LSB.Append('<para>' + LLine + '</para>');
     end;
 
     Result := LSB.ToString;

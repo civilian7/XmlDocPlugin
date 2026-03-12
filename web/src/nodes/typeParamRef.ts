@@ -9,7 +9,10 @@ export const TypeParamRef = Mark.create({
 
   addAttributes() {
     return {
-      name: { default: '' },
+      name: {
+        default: '',
+        parseHTML: (el: HTMLElement) => el.getAttribute('data-typeparam') ?? '',
+      },
     };
   },
 

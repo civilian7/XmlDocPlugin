@@ -10,7 +10,10 @@ export const SeeRef = Mark.create({
 
   addAttributes() {
     return {
-      cref: { default: '' },
+      cref: {
+        default: '',
+        parseHTML: (el: HTMLElement) => el.getAttribute('data-cref') ?? '',
+      },
     };
   },
 

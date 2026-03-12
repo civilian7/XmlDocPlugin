@@ -46,7 +46,9 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    /// <summary>IDE 메뉴에 XmlDoc 항목을 추가합니다.</summary>
+    /// <summary>
+    /// <para>IDE 메뉴에 XmlDoc 항목을 추가합니다.</para>
+    /// </summary>
     procedure InstallMenu;
     /// <summary>기존 메뉴 아이템의 ShortCut을 현재 설정값으로 갱신합니다.</summary>
     procedure RefreshShortcuts;
@@ -54,8 +56,9 @@ type
     procedure UninstallMenu;
   end;
 
-/// <summary>Doc Inspector 토글 콜백을 설정합니다.</summary>
-/// <param name="ACallback">토글 시 호출할 콜백</param>
+/// <param name="ACallback"></param>
+/// <example>
+/// </example>
 procedure SetToggleInspectorCallback(ACallback: TProc);
 
 /// <summary>Doc Stub 생성 콜백을 설정합니다.</summary>
