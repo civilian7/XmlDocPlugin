@@ -1,0 +1,6 @@
+Windows Registry Editor Version 5.00
+
+; XmlDoc Plugin - Expert DLL 등록 해제
+
+[HKEY_CURRENT_USER\Software\Embarcadero\BDS\37.0\Experts]
+"XmlDocPlugin"=-

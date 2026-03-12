@@ -1,0 +1,36 @@
+﻿# API Reference
+
+## Units
+
+| Unit | Description |
+|------|-------------|
+| [XmlDoc.Consts](units/XmlDoc.Consts.md) |  |
+| [XmlDoc.Model](units/XmlDoc.Model.md) |  |
+| [XmlDoc.CodeGen](units/XmlDoc.CodeGen.md) |  |
+| [XmlDoc.CodeGen.OTA](units/XmlDoc.CodeGen.OTA.md) |  |
+| [XmlDoc.Parser](units/XmlDoc.Parser.md) |  |
+| [XmlDoc.StubGen](units/XmlDoc.StubGen.md) |  |
+| [XmlDoc.I18n](units/XmlDoc.I18n.md) |  |
+| [XmlDoc.Logger](units/XmlDoc.Logger.md) |  |
+| [XmlDoc.ErrorHandler](units/XmlDoc.ErrorHandler.md) |  |
+| [XmlDoc.HelpGen.Types](units/XmlDoc.HelpGen.Types.md) |  |
+| [XmlDoc.HelpGen.Scanner](units/XmlDoc.HelpGen.Scanner.md) |  |
+| [XmlDoc.HelpGen.BatchParser](units/XmlDoc.HelpGen.BatchParser.md) |  |
+| [XmlDoc.HelpGen.CrossRef](units/XmlDoc.HelpGen.CrossRef.md) |  |
+| [XmlDoc.HelpGen.Renderer](units/XmlDoc.HelpGen.Renderer.md) |  |
+| [XmlDoc.HelpGen.Renderer.HTML](units/XmlDoc.HelpGen.Renderer.HTML.md) |  |
+| [XmlDoc.HelpGen.Renderer.MD](units/XmlDoc.HelpGen.Renderer.MD.md) |  |
+| [XmlDoc.HelpGen.Renderer.CHM](units/XmlDoc.HelpGen.Renderer.CHM.md) |  |
+| [XmlDoc.HelpGen.Renderer.JSON](units/XmlDoc.HelpGen.Renderer.JSON.md) |  |
+| [XmlDoc.HelpGen.SitePublisher](units/XmlDoc.HelpGen.SitePublisher.md) |  |
+| [XmlDoc.HelpGen.Coverage](units/XmlDoc.HelpGen.Coverage.md) |  |
+| [XmlDoc.HelpGen.ThemeEngine](units/XmlDoc.HelpGen.ThemeEngine.md) |  |
+| [XmlDoc.Plugin.Main](units/XmlDoc.Plugin.Main.md) |  |
+| [XmlDoc.Plugin.EditorNotifier](units/XmlDoc.Plugin.EditorNotifier.md) |  |
+| [XmlDoc.Plugin.DocInspector](units/XmlDoc.Plugin.DocInspector.md) |  |
+| [XmlDoc.Plugin.Settings](units/XmlDoc.Plugin.Settings.md) |  |
+| [XmlDoc.Plugin.Shortcuts](units/XmlDoc.Plugin.Shortcuts.md) |  |
+| [XmlDoc.Plugin.BatchGenDialog](units/XmlDoc.Plugin.BatchGenDialog.md) |  |
+| [XmlDoc.Plugin.QuickDocPreview](units/XmlDoc.Plugin.QuickDocPreview.md) |  |
+| [XmlDoc.Plugin.UndocNavigator](units/XmlDoc.Plugin.UndocNavigator.md) |  |
+| [XmlDoc.Plugin.UpdateChecker](units/XmlDoc.Plugin.UpdateChecker.md) |  |

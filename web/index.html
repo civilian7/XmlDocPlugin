@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XmlDoc Editor</title>
+</head>
+<body>
+  <!-- ── Header: 현재 코드 요소 정보 ── -->
+  <div id="element-header">
+    <span class="element-kind">—</span>
+    <span class="element-name">커서를 코드 요소 위에 놓으세요</span>
+  </div>
+
+  <!-- ── Tag Toolbar ── -->
+  <div id="tag-toolbar"></div>
+
+  <!-- ── Summary ── -->
+  <div id="summary-section" class="section">
+    <div class="section-header">Summary</div>
+    <div class="section-body">
+      <div class="tiptap-wrap">
+        <div id="summary-editor"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Parameters ── -->
+  <div id="params-section" class="section hidden">
+    <div class="section-header">Parameters</div>
+    <div class="section-body"></div>
+  </div>
+
+  <!-- ── Returns ── -->
+  <div id="returns-section" class="section hidden">
+    <div class="section-header">Returns</div>
+    <div class="section-body">
+      <div class="tiptap-wrap">
+        <div id="returns-editor"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Remarks (접이식) ── -->
+  <div id="remarks-section" class="section collapsed">
+    <div class="section-header collapsible">Remarks</div>
+    <div class="section-body">
+      <div class="tiptap-wrap">
+        <div id="remarks-editor"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Exceptions (접이식) ── -->
+  <div id="exceptions-section" class="section collapsed">
+    <div class="section-header collapsible">Exceptions</div>
+    <div class="section-body">
+      <button id="btn-add-exception" class="btn-add">+ Exception</button>
+    </div>
+  </div>
+
+  <!-- ── See Also (접이식) ── -->
+  <div id="seealso-section" class="section collapsed">
+    <div class="section-header collapsible">See Also</div>
+    <div class="section-body">
+      <button id="btn-add-seealso" class="btn-add">+ See Also</button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+Windows Registry Editor Version 5.00
+
+; XmlDoc Plugin - Expert DLL 등록
+; BDS 37.0 = Delphi 13 (Studio 37.0)
+; 경로를 실제 빌드 출력 경로로 수정 후 사용하세요.
+
+[HKEY_CURRENT_USER\Software\Embarcadero\BDS\37.0\Experts]
+"XmlDocPlugin"="C:\\Works\\XMLDocument\\src\\Plugin\\Win64\\Debug\\XmlDocExpert.dll"

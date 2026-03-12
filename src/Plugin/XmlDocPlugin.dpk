@@ -1,0 +1,76 @@
+﻿package XmlDocPlugin;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'XmlDoc Plugin - XML Documentation WYSIWYG Editor'}
+{$DESIGNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  vcl,
+  designide,
+  xmlrtl,
+  vclwinx,
+  vcledge,
+  VclSmp;
+
+contains
+  XmlDoc.Consts in '..\Core\XmlDoc.Consts.pas',
+  XmlDoc.Model in '..\Core\XmlDoc.Model.pas',
+  XmlDoc.CodeGen in '..\Core\XmlDoc.CodeGen.pas',
+  XmlDoc.CodeGen.OTA in '..\Core\XmlDoc.CodeGen.OTA.pas',
+  XmlDoc.Parser in '..\Core\XmlDoc.Parser.pas',
+  XmlDoc.StubGen in '..\Core\XmlDoc.StubGen.pas',
+  XmlDoc.I18n in '..\Core\XmlDoc.I18n.pas',
+  XmlDoc.Logger in '..\Core\XmlDoc.Logger.pas',
+  XmlDoc.ErrorHandler in '..\Core\XmlDoc.ErrorHandler.pas',
+  XmlDoc.HelpGen.Types in '..\HelpGen\XmlDoc.HelpGen.Types.pas',
+  XmlDoc.HelpGen.Scanner in '..\HelpGen\XmlDoc.HelpGen.Scanner.pas',
+  XmlDoc.HelpGen.BatchParser in '..\HelpGen\XmlDoc.HelpGen.BatchParser.pas',
+  XmlDoc.HelpGen.CrossRef in '..\HelpGen\XmlDoc.HelpGen.CrossRef.pas',
+  XmlDoc.HelpGen.Renderer in '..\HelpGen\XmlDoc.HelpGen.Renderer.pas',
+  XmlDoc.HelpGen.Renderer.HTML in '..\HelpGen\XmlDoc.HelpGen.Renderer.HTML.pas',
+  XmlDoc.HelpGen.Renderer.MD in '..\HelpGen\XmlDoc.HelpGen.Renderer.MD.pas',
+  XmlDoc.HelpGen.Renderer.CHM in '..\HelpGen\XmlDoc.HelpGen.Renderer.CHM.pas',
+  XmlDoc.HelpGen.Renderer.JSON in '..\HelpGen\XmlDoc.HelpGen.Renderer.JSON.pas',
+  XmlDoc.HelpGen.SitePublisher in '..\HelpGen\XmlDoc.HelpGen.SitePublisher.pas',
+  XmlDoc.HelpGen.Coverage in '..\HelpGen\XmlDoc.HelpGen.Coverage.pas',
+  XmlDoc.HelpGen.ThemeEngine in '..\HelpGen\XmlDoc.HelpGen.ThemeEngine.pas',
+  XmlDoc.Plugin.Main in 'XmlDoc.Plugin.Main.pas',
+  XmlDoc.Plugin.EditorNotifier in 'XmlDoc.Plugin.EditorNotifier.pas',
+  XmlDoc.Plugin.DocInspector in 'XmlDoc.Plugin.DocInspector.pas',
+  XmlDoc.Plugin.Settings in 'XmlDoc.Plugin.Settings.pas',
+  XmlDoc.Plugin.Shortcuts in 'XmlDoc.Plugin.Shortcuts.pas',
+  XmlDoc.Plugin.BatchGenDialog in 'XmlDoc.Plugin.BatchGenDialog.pas',
+  XmlDoc.Plugin.CoverageDialog in 'XmlDoc.Plugin.CoverageDialog.pas',
+  XmlDoc.Plugin.QuickDocPreview in 'XmlDoc.Plugin.QuickDocPreview.pas',
+  XmlDoc.Plugin.UndocNavigator in 'XmlDoc.Plugin.UndocNavigator.pas',
+  XmlDoc.Plugin.SettingsDialog in 'XmlDoc.Plugin.SettingsDialog.pas',
+  XmlDoc.Plugin.UpdateChecker in 'XmlDoc.Plugin.UpdateChecker.pas',
+  XmlDoc.ParamDict in '..\Core\XmlDoc.ParamDict.pas';
+
+end.

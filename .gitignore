@@ -1,0 +1,33 @@
+# Delphi build output
+__history/
+__recovery/
+*.dcu
+*.exe
+*.dll
+*.bpl
+*.dcp
+*.map
+*.drc
+*.rsm
+Win32/
+Win64/
+
+# Delphi IDE files
+*.local
+*.identcache
+*.dsk
+*.stat
+*.todo
+*.cfg
+~*
+
+# Web
+web/node_modules/
+
+# Logs
+logs/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store

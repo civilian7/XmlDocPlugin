@@ -1,0 +1,2 @@
+﻿# XmlDoc.HelpGen.Scanner
+
