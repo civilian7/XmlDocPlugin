@@ -62,7 +62,6 @@ function renderToolbar(): void {
     { action: 'see', label: 'See', title: '<see cref> 타입/멤버 참조' },
     { action: 'paramref', label: 'Param', title: '<paramref> 파라미터 참조' },
     { action: 'typeparamref', label: 'TParam', title: '<typeparamref> 제네릭 타입 참조' },
-    { action: 'note', label: 'Note\u25be', title: '<note> 주의사항/팁/경고 블록' },
   ];
 
   const btnGroup = document.createElement('div');
@@ -108,9 +107,6 @@ function handleAction(action: string, btn: HTMLElement): void {
       break;
     case 'typeparamref':
       showTypeParamPopover(btn);
-      break;
-    case 'note':
-      showNotePopover(btn);
       break;
   }
 }
@@ -184,40 +180,6 @@ function showTypeParamPopover(anchor: HTMLElement): void {
     item.addEventListener('click', () => {
       if (!activeEditor) return;
       applyMark(activeEditor, 'typeParamRef', { name }, name);
-      hidePopover();
-    });
-    content.appendChild(item);
-  });
-
-  showPopover(anchor, content);
-}
-
-function showNotePopover(anchor: HTMLElement): void {
-  const types = [
-    { value: 'note', label: 'Note', desc: '일반 참고사항' },
-    { value: 'warning', label: 'Warning', desc: '경고' },
-    { value: 'tip', label: 'Tip', desc: '유용한 팁' },
-    { value: 'caution', label: 'Caution', desc: '주의사항' },
-  ];
-
-  const content = document.createElement('div');
-  content.className = 'popover-list';
-
-  types.forEach(t => {
-    const item = document.createElement('button');
-    item.className = 'popover-list-item';
-    item.innerHTML = `<span class="popover-item-name">${t.label}</span><span class="popover-item-type">${t.desc}</span>`;
-    item.addEventListener('click', () => {
-      if (!activeEditor) return;
-      activeEditor
-        .chain()
-        .focus()
-        .insertContent({
-          type: 'noteBlock',
-          attrs: { noteType: t.value },
-          content: [{ type: 'text', text: ' ' }],
-        })
-        .run();
       hidePopover();
     });
     content.appendChild(item);

@@ -96,12 +96,6 @@ const TAGS: TagInfo[] = [
     example: '/// <seealso cref="TUserManager.DeleteUser"/>',
     usage: '관련 API를 안내할 때 사용합니다. <see>와 달리 별도 섹션에 표시됩니다.',
   },
-  {
-    tag: '<note>',
-    description: '주의사항, 팁, 경고 등 강조 블록.',
-    example: '/// <note type="warning">이 메서드는 더 이상 사용되지 않습니다.</note>',
-    usage: '중요한 주의사항이나 팁을 강조할 때 사용합니다. type: note, warning, tip, caution',
-  },
 ];
 
 let modalEl: HTMLElement | null = null;

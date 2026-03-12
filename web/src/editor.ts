@@ -5,7 +5,6 @@ import { CodeInline } from './nodes/codeInline';
 import { SeeRef } from './nodes/seeRef';
 import { ParamRef } from './nodes/paramRef';
 import { TypeParamRef } from './nodes/typeParamRef';
-import { NoteBlock } from './nodes/noteBlock';
 import { bridge } from './bridge';
 import type { DocModel, ElementInfo, ParamDoc } from './types';
 import { initToolbar, setActiveEditor, updateToolbarState } from './toolbar';
@@ -26,7 +25,6 @@ const sharedExtensions = [
   SeeRef,
   ParamRef,
   TypeParamRef,
-  NoteBlock,
 ];
 
 // ────────────────────────────────────────────
