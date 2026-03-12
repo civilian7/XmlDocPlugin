@@ -36,13 +36,13 @@ function $(selector: string): HTMLElement | null {
 
 function collectDoc(): DocModel {
   const doc: DocModel = {
-    summary: summaryEditor?.getText() ?? '',
+    summary: summaryEditor?.getText({ blockSeparator: '\n' }) ?? '',
   };
 
-  const remarksText = remarksEditor?.getText() ?? '';
+  const remarksText = remarksEditor?.getText({ blockSeparator: '\n' }) ?? '';
   if (remarksText) doc.remarks = remarksText;
 
-  const returnsText = returnsEditor?.getText() ?? '';
+  const returnsText = returnsEditor?.getText({ blockSeparator: '\n' }) ?? '';
   if (returnsText) doc.returns = returnsText;
 
   // Params
