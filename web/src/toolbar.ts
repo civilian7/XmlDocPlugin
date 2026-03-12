@@ -117,7 +117,7 @@ function handleAction(action: string, btn: HTMLElement): void {
 
 function applyCode(): void {
   if (!activeEditor) return;
-  activeEditor.chain().focus().toggleCode().run();
+  activeEditor.chain().focus().toggleMark('codeInline').run();
 }
 
 function showSeePopover(anchor: HTMLElement): void {
