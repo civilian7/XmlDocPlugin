@@ -218,6 +218,17 @@ function setupAddButtons(): void {
 // ────────────────────────────────────────────
 // TipTap Editors
 // ────────────────────────────────────────────
+/** 줄바꿈이 포함된 plain text를 HTML 단락으로 변환 */
+function textToHtml(text: string): string {
+  if (!text) return '';
+  if (!text.includes('\n')) return `<p>${text}</p>`;
+  return text
+    .split('\n')
+    .filter(line => line.trim() !== '')
+    .map(line => `<p>${line}</p>`)
+    .join('');
+}
+
 function createEditor(element: HTMLElement, content: string, placeholder: string): Editor {
   return new Editor({
     element,
@@ -225,7 +236,7 @@ function createEditor(element: HTMLElement, content: string, placeholder: string
       ...sharedExtensions,
       Placeholder.configure({ placeholder }),
     ],
-    content: content || '',
+    content: textToHtml(content),
     onUpdate: () => notifyChanged(),
     onFocus: ({ editor }) => setActiveEditor(editor),
   });
