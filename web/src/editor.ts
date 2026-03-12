@@ -67,6 +67,17 @@ function collectDoc(): DocModel {
     });
   }
 
+  // Examples
+  const exampleRows = document.querySelectorAll('.example-row');
+  if (exampleRows.length > 0) {
+    doc.examples = [];
+    exampleRows.forEach(row => {
+      const description = (row.querySelector('.example-desc') as HTMLElement)?.innerText ?? '';
+      const code = (row.querySelector('.example-code') as HTMLTextAreaElement)?.value ?? '';
+      doc.examples!.push({ description, code });
+    });
+  }
+
   // SeeAlso
   const seeRows = document.querySelectorAll('.seealso-row');
   if (seeRows.length > 0) {
@@ -161,6 +172,41 @@ function addExceptionRow(
   }
 }
 
+function renderExamples(examples: DocModel['examples']): void {
+  const container = $('#examples-section .section-body')!;
+  container.querySelectorAll('.example-row').forEach(r => r.remove());
+
+  (examples ?? []).forEach(ex => {
+    addExampleRow(container, ex.description, ex.code);
+  });
+}
+
+function addExampleRow(
+  container: HTMLElement,
+  description: string = '',
+  code: string = ''
+): void {
+  const row = document.createElement('div');
+  row.className = 'example-row';
+  row.innerHTML = `
+    <span class="example-desc" contenteditable="true" data-placeholder="설명 (선택)...">${description}</span>
+    <textarea class="example-code" placeholder="코드 예시..." rows="3">${code}</textarea>
+    <button class="btn-remove" title="삭제">&times;</button>
+  `;
+  row.querySelector('.example-desc')!.addEventListener('input', notifyChanged);
+  row.querySelector('.example-code')!.addEventListener('input', notifyChanged);
+  row.querySelector('.btn-remove')!.addEventListener('click', () => {
+    row.remove();
+    notifyChanged();
+  });
+  const btn = container.querySelector('.btn-add');
+  if (btn) {
+    container.insertBefore(row, btn);
+  } else {
+    container.appendChild(row);
+  }
+}
+
 function renderSeeAlso(seeAlso: DocModel['seeAlso']): void {
   const container = $('#seealso-section .section-body')!;
   container.querySelectorAll('.seealso-row').forEach(r => r.remove());
@@ -204,6 +250,13 @@ function setupAddButtons(): void {
     const container = $('#exceptions-section .section-body')!;
     addExceptionRow(container);
     $('#exceptions-section')!.classList.remove('collapsed');
+    notifyChanged();
+  });
+
+  $('#btn-add-example')?.addEventListener('click', () => {
+    const container = $('#examples-section .section-body')!;
+    addExampleRow(container);
+    $('#examples-section')!.classList.remove('collapsed');
     notifyChanged();
   });
 
@@ -283,6 +336,7 @@ function loadDocument(element: ElementInfo, doc: DocModel): void {
   const hasReturn = element.kind === 'method' && !!element.returnType;
   $('#returns-section')!.classList.toggle('hidden', !hasReturn);
 
+  renderExamples(doc.examples);
   renderExceptions(doc.exceptions);
   renderSeeAlso(doc.seeAlso);
   updateToolbarState(element);
@@ -322,6 +376,9 @@ export function init(): void {
           { name: 'ANewName', description: '새로운 이름' },
         ],
         returns: '업데이트 성공 여부',
+        examples: [
+          { description: '사용자 이름 변경', code: 'LResult := UserMgr.UpdateUser(1, \'홍길동\');' },
+        ],
         exceptions: [
           { typeRef: 'EUserNotFoundException', description: '사용자를 찾을 수 없을 때 발생' },
         ],

@@ -198,6 +198,65 @@ body {
   color: var(--text-placeholder);
 }
 
+/* ── Example rows ── */
+.example-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--bg-hover);
+}
+
+.example-row:last-of-type {
+  border-bottom: none;
+}
+
+.example-row .btn-remove {
+  align-self: flex-end;
+}
+
+.example-desc {
+  padding: 2px 6px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  outline: none;
+  min-height: 22px;
+  font-size: 12px;
+}
+
+.example-desc:hover {
+  border-color: var(--border);
+}
+
+.example-desc:focus {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.example-desc:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-placeholder);
+}
+
+.example-code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-secondary);
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+  min-height: 48px;
+  line-height: 1.4;
+  tab-size: 2;
+}
+
+.example-code:focus {
+  border-color: var(--accent);
+}
+
 /* ── Exceptions / SeeAlso rows ── */
 .exception-row,
 .seealso-row {
