@@ -33,14 +33,18 @@ type
     FMenuItems: TList;
     FMiNextUndocumented: TMenuItem;
     FMiPreviousUndocumented: TMenuItem;
+    FMiToggleDocExplorer: TMenuItem;
     FMiToggleInspector: TMenuItem;
 
+    procedure OnAboutClick(Sender: TObject);
     procedure OnCoverageReportClick(Sender: TObject);
+    procedure OnDocumentMenuClick(Sender: TObject);
     procedure OnGenerateHelpClick(Sender: TObject);
     procedure OnGenerateStubClick(Sender: TObject);
     procedure OnNextUndocumentedClick(Sender: TObject);
     procedure OnPreviousUndocumentedClick(Sender: TObject);
     procedure OnSettingsClick(Sender: TObject);
+    procedure OnToggleDocExplorerClick(Sender: TObject);
     procedure OnToggleInspectorClick(Sender: TObject);
   public
     constructor Create;
@@ -56,10 +60,9 @@ type
     procedure UninstallMenu;
   end;
 
-/// <param name="ACallback"></param>
-/// <example>
-/// </example>
-procedure SetToggleInspectorCallback(ACallback: TProc);
+/// <summary>Doc Inspector 토글 콜백을 설정합니다.</summary>
+/// <param name="ACallback">토글 후 Visible 상태를 반환하는 콜백</param>
+procedure SetToggleInspectorCallback(ACallback: TFunc<Boolean>);
 
 /// <summary>Doc Stub 생성 콜백을 설정합니다.</summary>
 /// <param name="ACallback">생성 시 호출할 콜백</param>
@@ -81,6 +84,18 @@ procedure SetNextUndocumentedCallback(ACallback: TProc);
 /// <param name="ACallback">이동 시 호출할 콜백</param>
 procedure SetPreviousUndocumentedCallback(ACallback: TProc);
 
+/// <summary>Documentation Explorer 토글 콜백을 설정합니다.</summary>
+/// <param name="ACallback">토글 후 Visible 상태를 반환하는 콜백</param>
+procedure SetToggleDocExplorerCallback(ACallback: TFunc<Boolean>);
+
+/// <summary>Doc Inspector 표시 상태 확인 콜백을 설정합니다.</summary>
+/// <param name="ACallback">현재 Visible 상태를 반환하는 콜백</param>
+procedure SetIsInspectorVisibleFunc(ACallback: TFunc<Boolean>);
+
+/// <summary>Documentation Explorer 표시 상태 확인 콜백을 설정합니다.</summary>
+/// <param name="ACallback">현재 Visible 상태를 반환하는 콜백</param>
+procedure SetIsDocExplorerVisibleFunc(ACallback: TFunc<Boolean>);
+
 /// <summary>Settings 다이얼로그 콜백을 설정합니다.</summary>
 /// <param name="ACallback">다이얼로그 표시 시 호출할 콜백</param>
 procedure SetSettingsCallback(ACallback: TProc);
@@ -88,18 +103,22 @@ procedure SetSettingsCallback(ACallback: TProc);
 implementation
 
 uses
-  Vcl.ActnList;
+  Vcl.ActnList,
+  XmlDoc.Plugin.AboutDialog;
 
 var
-  GToggleInspectorCallback: TProc;
+  GToggleInspectorCallback: TFunc<Boolean>;
   GGenerateStubCallback: TProc;
   GGenerateHelpCallback: TProc;
   GCoverageReportCallback: TProc;
   GNextUndocumentedCallback: TProc;
   GPreviousUndocumentedCallback: TProc;
+  GToggleDocExplorerCallback: TFunc<Boolean>;
+  GIsInspectorVisibleFunc: TFunc<Boolean>;
+  GIsDocExplorerVisibleFunc: TFunc<Boolean>;
   GSettingsCallback: TProc;
 
-procedure SetToggleInspectorCallback(ACallback: TProc);
+procedure SetToggleInspectorCallback(ACallback: TFunc<Boolean>);
 begin
   GToggleInspectorCallback := ACallback;
 end;
@@ -127,6 +146,21 @@ end;
 procedure SetPreviousUndocumentedCallback(ACallback: TProc);
 begin
   GPreviousUndocumentedCallback := ACallback;
+end;
+
+procedure SetToggleDocExplorerCallback(ACallback: TFunc<Boolean>);
+begin
+  GToggleDocExplorerCallback := ACallback;
+end;
+
+procedure SetIsInspectorVisibleFunc(ACallback: TFunc<Boolean>);
+begin
+  GIsInspectorVisibleFunc := ACallback;
+end;
+
+procedure SetIsDocExplorerVisibleFunc(ACallback: TFunc<Boolean>);
+begin
+  GIsDocExplorerVisibleFunc := ACallback;
 end;
 
 procedure SetSettingsCallback(ACallback: TProc);
@@ -188,7 +222,7 @@ procedure TXmlDocKeyBinding.DoToggleInspector(const Context: IOTAKeyContext; Key
 begin
   BindingResult := krHandled;
   if Assigned(GToggleInspectorCallback) then
-    GToggleInspectorCallback;
+    GToggleInspectorCallback();
 end;
 
 { TXmlDocMenuIntegration }
@@ -238,20 +272,29 @@ begin
   if not Assigned(LToolsMenu) then
     Exit;
 
-  // XmlDoc Plugin 서브메뉴 생성
+  // Document 최상위 메뉴 생성
   LXmlDocMenu := TMenuItem.Create(LMainMenu);
-  LXmlDocMenu.Caption := 'XmlDoc Plugin';
-  LXmlDocMenu.Name := 'XmlDocPluginMenu';
+  LXmlDocMenu.Caption := 'Document';
+  LXmlDocMenu.Name := 'XmlDocDocumentMenu';
+  LXmlDocMenu.OnClick := OnDocumentMenuClick;
   FMenuItems.Add(LXmlDocMenu);
 
-  // Toggle Doc Inspector
+  // Doc Inspector
   LItem := TMenuItem.Create(LXmlDocMenu);
-  LItem.Caption := 'Toggle Doc Inspector';
+  LItem.Caption := 'Doc Inspector';
   LItem.ShortCut := TPluginSettings.Instance.Global.Shortcuts.ToggleInspector;
   LItem.OnClick := OnToggleInspectorClick;
   LXmlDocMenu.Add(LItem);
   FMenuItems.Add(LItem);
   FMiToggleInspector := LItem;
+
+  // Documentation Explorer
+  LItem := TMenuItem.Create(LXmlDocMenu);
+  LItem.Caption := 'Documentation Explorer';
+  LItem.OnClick := OnToggleDocExplorerClick;
+  LXmlDocMenu.Add(LItem);
+  FMenuItems.Add(LItem);
+  FMiToggleDocExplorer := LItem;
 
   // Generate Doc Stub
   LItem := TMenuItem.Create(LXmlDocMenu);
@@ -323,7 +366,25 @@ begin
   LXmlDocMenu.Add(LItem);
   FMenuItems.Add(LItem);
 
-  LToolsMenu.Add(LXmlDocMenu);
+  // Separator
+  LItem := TMenuItem.Create(LXmlDocMenu);
+  LItem.Caption := '-';
+  LXmlDocMenu.Add(LItem);
+  FMenuItems.Add(LItem);
+
+  // About...
+  LItem := TMenuItem.Create(LXmlDocMenu);
+  LItem.Caption := 'About...';
+  LItem.OnClick := OnAboutClick;
+  LXmlDocMenu.Add(LItem);
+  FMenuItems.Add(LItem);
+
+  // Tools 메뉴 오른쪽에 최상위 메뉴로 삽입
+  I := LMainMenu.Items.IndexOf(LToolsMenu);
+  if I >= 0 then
+    LMainMenu.Items.Insert(I + 1, LXmlDocMenu)
+  else
+    LMainMenu.Items.Add(LXmlDocMenu);
 end;
 
 procedure TXmlDocMenuIntegration.RefreshShortcuts;
@@ -349,7 +410,16 @@ end;
 procedure TXmlDocMenuIntegration.UninstallMenu;
 var
   I: Integer;
+  LRootMenu: TMenuItem;
 begin
+  // 최상위 메뉴를 부모에서 먼저 분리
+  if FMenuItems.Count > 0 then
+  begin
+    LRootMenu := TMenuItem(FMenuItems[0]);
+    if Assigned(LRootMenu.Parent) then
+      LRootMenu.Parent.Remove(LRootMenu);
+  end;
+
   // 역순으로 제거 (자식 먼저, 부모 나중에)
   for I := FMenuItems.Count - 1 downto 0 do
     TMenuItem(FMenuItems[I]).Free;
@@ -357,10 +427,24 @@ begin
   FMenuItems.Clear;
 end;
 
+procedure TXmlDocMenuIntegration.OnAboutClick(Sender: TObject);
+begin
+  ShowAboutDialog;
+end;
+
 procedure TXmlDocMenuIntegration.OnCoverageReportClick(Sender: TObject);
 begin
   if Assigned(GCoverageReportCallback) then
     GCoverageReportCallback;
+end;
+
+procedure TXmlDocMenuIntegration.OnDocumentMenuClick(Sender: TObject);
+begin
+  if Assigned(FMiToggleInspector) and Assigned(GIsInspectorVisibleFunc) then
+    FMiToggleInspector.Checked := GIsInspectorVisibleFunc;
+
+  if Assigned(FMiToggleDocExplorer) and Assigned(GIsDocExplorerVisibleFunc) then
+    FMiToggleDocExplorer.Checked := GIsDocExplorerVisibleFunc;
 end;
 
 procedure TXmlDocMenuIntegration.OnGenerateHelpClick(Sender: TObject);
@@ -391,6 +475,12 @@ procedure TXmlDocMenuIntegration.OnSettingsClick(Sender: TObject);
 begin
   if Assigned(GSettingsCallback) then
     GSettingsCallback;
+end;
+
+procedure TXmlDocMenuIntegration.OnToggleDocExplorerClick(Sender: TObject);
+begin
+  if Assigned(GToggleDocExplorerCallback) then
+    GToggleDocExplorerCallback;
 end;
 
 procedure TXmlDocMenuIntegration.OnToggleInspectorClick(Sender: TObject);

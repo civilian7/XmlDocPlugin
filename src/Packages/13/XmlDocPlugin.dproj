@@ -118,7 +118,7 @@
         <DesignOnlyPackage>true</DesignOnlyPackage>
         <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;DUnitX.Loggers.GUI;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_Locale>1042</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=;CFBundleName=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=0.5.0.0;InternalName=;LegalCopyright=(c) 2026 Fullbit Computing;LegalTrademarks=;OriginalFilename=;ProductName=XmlDoc Plugin;ProductVersion=0.5.0;Comments=;CFBundleName=</VerInfo_Keys>
         <DCC_UnitSearchPath>..\..\Vendor\DelphiAST\Source;..\..\Vendor\DelphiAST\Source\SimpleParser;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DcuOutput>.\$(Platform)\$(Config)</DCC_DcuOutput>
     </PropertyGroup>
@@ -154,7 +154,7 @@
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=0.5.0.0;InternalName=;LegalCopyright=(c) 2026 Fullbit Computing;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=XmlDoc Plugin;ProductVersion=0.5.0;Comments=</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_UsePackage>vcl;rtl;xmlrtl;vclwinx;vcledge;RESTComponents;VclSmp;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
@@ -192,7 +192,7 @@
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=0.5.0.0;InternalName=;LegalCopyright=(c) 2026 Fullbit Computing;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=XmlDoc Plugin;ProductVersion=0.5.0;Comments=</VerInfo_Keys>
         <DllSuffix>$(Auto)</DllSuffix>
     </PropertyGroup>
     <ItemGroup>
@@ -206,39 +206,42 @@
         <DCCReference Include="vclwinx.dcp"/>
         <DCCReference Include="vcledge.dcp"/>
         <DCCReference Include="VclSmp.dcp"/>
-        <DCCReference Include="..\Core\XmlDoc.Consts.pas"/>
-        <DCCReference Include="..\Core\XmlDoc.Model.pas"/>
-        <DCCReference Include="..\Core\XmlDoc.CodeGen.pas"/>
-        <DCCReference Include="..\Core\XmlDoc.CodeGen.OTA.pas"/>
-        <DCCReference Include="..\Core\XmlDoc.Parser.pas"/>
-        <DCCReference Include="..\Core\XmlDoc.StubGen.pas"/>
-        <DCCReference Include="..\Core\XmlDoc.I18n.pas"/>
-        <DCCReference Include="..\Core\XmlDoc.Logger.pas"/>
-        <DCCReference Include="..\Core\XmlDoc.ErrorHandler.pas"/>
-        <DCCReference Include="..\HelpGen\XmlDoc.HelpGen.Types.pas"/>
-        <DCCReference Include="..\HelpGen\XmlDoc.HelpGen.Scanner.pas"/>
-        <DCCReference Include="..\HelpGen\XmlDoc.HelpGen.BatchParser.pas"/>
-        <DCCReference Include="..\HelpGen\XmlDoc.HelpGen.CrossRef.pas"/>
-        <DCCReference Include="..\HelpGen\XmlDoc.HelpGen.Renderer.pas"/>
-        <DCCReference Include="..\HelpGen\XmlDoc.HelpGen.Renderer.HTML.pas"/>
-        <DCCReference Include="..\HelpGen\XmlDoc.HelpGen.Renderer.MD.pas"/>
-        <DCCReference Include="..\HelpGen\XmlDoc.HelpGen.Renderer.CHM.pas"/>
-        <DCCReference Include="..\HelpGen\XmlDoc.HelpGen.Renderer.JSON.pas"/>
-        <DCCReference Include="..\HelpGen\XmlDoc.HelpGen.SitePublisher.pas"/>
-        <DCCReference Include="..\HelpGen\XmlDoc.HelpGen.Coverage.pas"/>
-        <DCCReference Include="..\HelpGen\XmlDoc.HelpGen.ThemeEngine.pas"/>
-        <DCCReference Include="XmlDoc.Plugin.Main.pas"/>
-        <DCCReference Include="XmlDoc.Plugin.EditorNotifier.pas"/>
-        <DCCReference Include="XmlDoc.Plugin.DocInspector.pas"/>
-        <DCCReference Include="XmlDoc.Plugin.Settings.pas"/>
-        <DCCReference Include="XmlDoc.Plugin.Shortcuts.pas"/>
-        <DCCReference Include="XmlDoc.Plugin.BatchGenDialog.pas"/>
-        <DCCReference Include="XmlDoc.Plugin.CoverageDialog.pas"/>
-        <DCCReference Include="XmlDoc.Plugin.QuickDocPreview.pas"/>
-        <DCCReference Include="XmlDoc.Plugin.UndocNavigator.pas"/>
-        <DCCReference Include="XmlDoc.Plugin.SettingsDialog.pas"/>
-        <DCCReference Include="XmlDoc.Plugin.UpdateChecker.pas"/>
-        <DCCReference Include="..\Core\XmlDoc.ParamDict.pas"/>
+        <DCCReference Include="..\..\Core\XmlDoc.Consts.pas"/>
+        <DCCReference Include="..\..\Core\XmlDoc.Model.pas"/>
+        <DCCReference Include="..\..\Core\XmlDoc.CodeGen.pas"/>
+        <DCCReference Include="..\..\Core\XmlDoc.CodeGen.OTA.pas"/>
+        <DCCReference Include="..\..\Core\XmlDoc.Parser.pas"/>
+        <DCCReference Include="..\..\Core\XmlDoc.StubGen.pas"/>
+        <DCCReference Include="..\..\Core\XmlDoc.I18n.pas"/>
+        <DCCReference Include="..\..\Core\XmlDoc.Logger.pas"/>
+        <DCCReference Include="..\..\Core\XmlDoc.ErrorHandler.pas"/>
+        <DCCReference Include="..\..\Core\XmlDoc.ParamDict.pas"/>
+        <DCCReference Include="..\..\HelpGen\XmlDoc.HelpGen.Types.pas"/>
+        <DCCReference Include="..\..\HelpGen\XmlDoc.HelpGen.Scanner.pas"/>
+        <DCCReference Include="..\..\HelpGen\XmlDoc.HelpGen.BatchParser.pas"/>
+        <DCCReference Include="..\..\HelpGen\XmlDoc.HelpGen.CrossRef.pas"/>
+        <DCCReference Include="..\..\HelpGen\XmlDoc.HelpGen.Renderer.pas"/>
+        <DCCReference Include="..\..\HelpGen\XmlDoc.HelpGen.Renderer.HTML.pas"/>
+        <DCCReference Include="..\..\HelpGen\XmlDoc.HelpGen.Renderer.MD.pas"/>
+        <DCCReference Include="..\..\HelpGen\XmlDoc.HelpGen.Renderer.CHM.pas"/>
+        <DCCReference Include="..\..\HelpGen\XmlDoc.HelpGen.Renderer.JSON.pas"/>
+        <DCCReference Include="..\..\HelpGen\XmlDoc.HelpGen.SitePublisher.pas"/>
+        <DCCReference Include="..\..\HelpGen\XmlDoc.HelpGen.Coverage.pas"/>
+        <DCCReference Include="..\..\HelpGen\XmlDoc.HelpGen.ThemeEngine.pas"/>
+        <DCCReference Include="..\..\PlugIn\XmlDoc.Plugin.Main.pas"/>
+        <DCCReference Include="..\..\PlugIn\XmlDoc.Plugin.EditorNotifier.pas"/>
+        <DCCReference Include="..\..\PlugIn\XmlDoc.Plugin.DocInspector.pas"/>
+        <DCCReference Include="..\..\PlugIn\XmlDoc.Plugin.Settings.pas"/>
+        <DCCReference Include="..\..\PlugIn\XmlDoc.Plugin.Shortcuts.pas"/>
+        <DCCReference Include="..\..\PlugIn\XmlDoc.Plugin.BatchGenDialog.pas"/>
+        <DCCReference Include="..\..\PlugIn\XmlDoc.Plugin.CoverageDialog.pas"/>
+        <DCCReference Include="..\..\PlugIn\XmlDoc.Plugin.QuickDocPreview.pas"/>
+        <DCCReference Include="..\..\PlugIn\XmlDoc.Plugin.UndocNavigator.pas"/>
+        <DCCReference Include="..\..\PlugIn\XmlDoc.Plugin.SettingsDialog.pas"/>
+        <DCCReference Include="..\..\PlugIn\XmlDoc.Plugin.UpdateChecker.pas"/>
+        <DCCReference Include="..\..\Plugin\XmlDoc.Plugin.AboutDialog.pas"/>
+        <DCCReference Include="..\..\Plugin\XmlDoc.Plugin.DocExplorer.pas"/>
+        <DCCReference Include="..\..\Plugin\XmlDoc.Plugin.Utils.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -273,7 +276,7 @@
                 <Platform value="Win64x">True</Platform>
             </Platforms>
             <Deployment Version="5">
-                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\37.0\Bpl\XmlDocPlugin.bpl" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="C:\Users\Public\Documents\Embarcadero\Studio\37.0\Bpl\XmlDocPlugin370.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>XmlDocPlugin.bpl</RemoteName>
                         <Overwrite>true</Overwrite>

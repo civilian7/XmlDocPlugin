@@ -8,6 +8,7 @@ import { TypeParamRef } from './nodes/typeParamRef';
 import { bridge } from './bridge';
 import type { DocModel, ElementInfo, ParamDoc, TypeParamDoc } from './types';
 import { initToolbar, setActiveEditor, updateToolbarState } from './toolbar';
+import { renderPreview } from './preview';
 
 // ────────────────────────────────────────────
 // State
@@ -21,7 +22,6 @@ let valueEditor: Editor | null = null;
 
 const sharedExtensions = [
   StarterKit.configure({ code: false }),
-  Placeholder.configure({ placeholder: '설명을 입력하세요...' }),
   CodeInline,
   SeeRef,
   ParamRef,
@@ -96,7 +96,6 @@ function serializeBlock(node: any): string {
 // ────────────────────────────────────────────
 // Deserialization: XML-aware text → TipTap HTML
 // ────────────────────────────────────────────
-/** inline XML 태그가 포함된 텍스트를 TipTap HTML로 변환 */
 function textToHtml(text: string): string {
   if (!text) return '';
   const lines = text.split('\n');
@@ -106,7 +105,6 @@ function textToHtml(text: string): string {
     .join('');
 }
 
-/** inline XML 태그를 TipTap 마크 HTML 요소로 변환 */
 function inlineXmlToHtml(text: string): string {
   const pattern = /<c>(.*?)<\/c>|<see\s+cref="([^"]*)">(.*?)<\/see>|<see\s+cref="([^"]*)"\/?>|<paramref\s+name="([^"]*)"\/?>|<typeparamref\s+name="([^"]*)"\/?>/g;
 
@@ -115,25 +113,19 @@ function inlineXmlToHtml(text: string): string {
   let match;
 
   while ((match = pattern.exec(text)) !== null) {
-    // 매치 앞의 일반 텍스트 (이미 XML 이스케이프됨 → HTML에서 유효)
     if (match.index > lastIndex) {
       result += text.slice(lastIndex, match.index);
     }
 
     if (match[1] !== undefined) {
-      // <c>...</c>
       result += `<code class="xml-c">${match[1]}</code>`;
     } else if (match[2] !== undefined) {
-      // <see cref="X">text</see>
       result += `<span class="see-ref" data-cref="${match[2]}" title="${match[2]}">${match[3]}</span>`;
     } else if (match[4] !== undefined) {
-      // <see cref="X"/>
       result += `<span class="see-ref" data-cref="${match[4]}" title="${match[4]}">${match[4]}</span>`;
     } else if (match[5] !== undefined) {
-      // <paramref name="X"/>
       result += `<span class="param-ref" data-param="${match[5]}">${match[5]}</span>`;
     } else if (match[6] !== undefined) {
-      // <typeparamref name="T"/>
       result += `<span class="typeparam-ref" data-typeparam="${match[6]}">${match[6]}</span>`;
     }
 
@@ -165,23 +157,23 @@ function collectDoc(): DocModel {
   if (valueText) doc.value = valueText;
 
   // Params
-  const paramRows = document.querySelectorAll('.param-row');
+  const paramRows = document.querySelectorAll('#params-body tr');
   if (paramRows.length > 0) {
     doc.params = [];
     paramRows.forEach(row => {
-      const name = row.querySelector('.param-name')?.textContent ?? '';
-      const desc = (row.querySelector('.param-desc') as HTMLElement)?.innerText ?? '';
+      const name = row.querySelector('.td-name')?.textContent ?? '';
+      const desc = (row.querySelector('.td-desc') as HTMLElement)?.innerText ?? '';
       doc.params!.push({ name, description: desc });
     });
   }
 
   // TypeParams
-  const tpRows = document.querySelectorAll('.typeparam-row');
+  const tpRows = document.querySelectorAll('#typeparams-body tr');
   if (tpRows.length > 0) {
     doc.typeParams = [];
     tpRows.forEach(row => {
-      const name = row.querySelector('.typeparam-name')?.textContent ?? '';
-      const desc = (row.querySelector('.typeparam-desc') as HTMLElement)?.innerText ?? '';
+      const name = row.querySelector('.td-name')?.textContent ?? '';
+      const desc = (row.querySelector('.td-desc') as HTMLElement)?.innerText ?? '';
       doc.typeParams!.push({ name, description: desc });
     });
   }
@@ -227,25 +219,39 @@ function notifyChanged(): void {
 }
 
 // ────────────────────────────────────────────
-// UI Rendering
+// Member Signature
 // ────────────────────────────────────────────
-function renderHeader(el: ElementInfo): void {
-  const header = $('#element-header')!;
-  const kindLabel = escapeHtml(el.methodKind ?? el.kind);
-  const parentLabel = el.qualifiedParent ? escapeHtml(el.qualifiedParent) + '.' : '';
-  const nameLabel = escapeHtml(el.name);
-  const fileLabel = escapeHtml(el.fileName ?? '');
-  const lineLabel = el.lineNumber ? ` / ${el.lineNumber}` : '';
-  header.innerHTML = `
-    <span class="element-kind">${kindLabel}</span>
-    <span class="element-name">${parentLabel}${nameLabel}</span>
-    <span class="element-line">${fileLabel}${lineLabel}</span>
-  `;
+function renderSignature(el: ElementInfo): void {
+  const sig = $('#member-signature')!;
+  const kind = el.methodKind ?? el.kind;
+  const parent = el.qualifiedParent ? escapeHtml(el.qualifiedParent) : '';
+  const name = escapeHtml(el.name);
+  const generics = el.genericParams?.length
+    ? `<span class="sig-generic">&lt;${el.genericParams.map(escapeHtml).join(', ')}&gt;</span>`
+    : '';
+
+  // Build parameter signature
+  let paramSig = '';
+  if (el.params?.length) {
+    const params = el.params.map(p => escapeHtml(p.name)).join(', ');
+    paramSig = `(${params})`;
+  }
+
+  const kindLabel = `<span class="sig-kind"> ${escapeHtml(kind.charAt(0).toUpperCase() + kind.slice(1))}</span>`;
+
+  if (parent) {
+    sig.innerHTML = `<span class="sig-parent">${parent}.</span>${name}${generics}${paramSig}${kindLabel}`;
+  } else {
+    sig.innerHTML = `${name}${generics}${paramSig}${kindLabel}`;
+  }
 }
 
+// ────────────────────────────────────────────
+// Render Sections
+// ────────────────────────────────────────────
 function renderParams(params: ParamDoc[], elementParams: ElementInfo['params']): void {
-  const container = $('#params-section .section-body')!;
-  container.innerHTML = '';
+  const tbody = $('#params-body')!;
+  tbody.innerHTML = '';
 
   const sigParams = elementParams ?? [];
   if (sigParams.length === 0) {
@@ -256,20 +262,19 @@ function renderParams(params: ParamDoc[], elementParams: ElementInfo['params']):
 
   sigParams.forEach(sp => {
     const docParam = params.find(p => p.name === sp.name);
-    const row = document.createElement('div');
-    row.className = 'param-row';
-    row.innerHTML = `
-      <span class="param-name" title="${escapeHtml(sp.type ?? '')}">${escapeHtml(sp.name)}</span>
-      <span class="param-desc" contenteditable="true" data-placeholder="설명...">${escapeHtml(docParam?.description ?? '')}</span>
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-name" title="${escapeHtml(sp.type ?? '')}">${escapeHtml(sp.name)}</td>
+      <td class="td-desc" contenteditable="true">${escapeHtml(docParam?.description ?? '')}</td>
     `;
-    row.querySelector('.param-desc')!.addEventListener('input', notifyChanged);
-    container.appendChild(row);
+    tr.querySelector('.td-desc')!.addEventListener('input', notifyChanged);
+    tbody.appendChild(tr);
   });
 }
 
 function renderTypeParams(typeParams: TypeParamDoc[], genericParams: string[] | undefined): void {
-  const container = $('#typeparams-section .section-body')!;
-  container.innerHTML = '';
+  const tbody = $('#typeparams-body')!;
+  tbody.innerHTML = '';
 
   const sigTypeParams = genericParams ?? [];
   if (sigTypeParams.length === 0) {
@@ -280,37 +285,32 @@ function renderTypeParams(typeParams: TypeParamDoc[], genericParams: string[] | 
 
   sigTypeParams.forEach(name => {
     const docTP = typeParams.find(tp => tp.name === name);
-    const row = document.createElement('div');
-    row.className = 'typeparam-row';
-    row.innerHTML = `
-      <span class="typeparam-name">${escapeHtml(name)}</span>
-      <span class="typeparam-desc" contenteditable="true" data-placeholder="설명...">${escapeHtml(docTP?.description ?? '')}</span>
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-name">${escapeHtml(name)}</td>
+      <td class="td-desc" contenteditable="true">${escapeHtml(docTP?.description ?? '')}</td>
     `;
-    row.querySelector('.typeparam-desc')!.addEventListener('input', notifyChanged);
-    container.appendChild(row);
+    tr.querySelector('.td-desc')!.addEventListener('input', notifyChanged);
+    tbody.appendChild(tr);
   });
 }
 
 function renderExamples(examples: DocModel['examples']): void {
-  const container = $('#examples-section .section-body')!;
-  container.querySelectorAll('.example-row').forEach(r => r.remove());
-
-  (examples ?? []).forEach(ex => {
-    addExampleRow(container, ex.description, ex.code);
-  });
+  const container = $('#examples-body')!;
+  container.innerHTML = '';
+  (examples ?? []).forEach(ex => addExampleRow(container, ex.description, ex.code));
 }
 
-function addExampleRow(
-  container: HTMLElement,
-  description: string = '',
-  code: string = ''
-): void {
+function addExampleRow(container: HTMLElement, description = '', code = ''): void {
   const row = document.createElement('div');
   row.className = 'example-row';
   row.innerHTML = `
-    <span class="example-desc" contenteditable="true" data-placeholder="설명 (선택)...">${escapeHtml(description)}</span>
-    <textarea class="example-code" placeholder="코드 예시..." rows="3">${escapeHtml(code)}</textarea>
-    <button class="btn-remove" title="삭제">&times;</button>
+    <div class="example-header">
+      <span style="font-size:11px;color:var(--text-muted)">Example</span>
+      <button class="btn-remove" title="Remove">&times;</button>
+    </div>
+    <div class="example-desc" contenteditable="true" data-placeholder="Description (optional)...">${escapeHtml(description)}</div>
+    <textarea class="example-code" placeholder="Code example..." rows="3">${escapeHtml(code)}</textarea>
   `;
   row.querySelector('.example-desc')!.addEventListener('input', notifyChanged);
   row.querySelector('.example-code')!.addEventListener('input', notifyChanged);
@@ -318,34 +318,22 @@ function addExampleRow(
     row.remove();
     notifyChanged();
   });
-  const btn = container.querySelector('.btn-add');
-  if (btn) {
-    container.insertBefore(row, btn);
-  } else {
-    container.appendChild(row);
-  }
+  container.appendChild(row);
 }
 
 function renderExceptions(exceptions: DocModel['exceptions']): void {
-  const container = $('#exceptions-section .section-body')!;
-  container.querySelectorAll('.exception-row').forEach(r => r.remove());
-
-  (exceptions ?? []).forEach(ex => {
-    addExceptionRow(container, ex.typeRef, ex.description);
-  });
+  const container = $('#exceptions-body')!;
+  container.innerHTML = '';
+  (exceptions ?? []).forEach(ex => addExceptionRow(container, ex.typeRef, ex.description));
 }
 
-function addExceptionRow(
-  container: HTMLElement,
-  typeRef: string = '',
-  description: string = ''
-): void {
+function addExceptionRow(container: HTMLElement, typeRef = '', description = ''): void {
   const row = document.createElement('div');
   row.className = 'exception-row';
   row.innerHTML = `
-    <input class="exception-type" value="${escapeHtml(typeRef)}" placeholder="예외 타입 (예: EArgumentException)" />
-    <span class="exception-desc" contenteditable="true" data-placeholder="설명...">${escapeHtml(description)}</span>
-    <button class="btn-remove" title="삭제">&times;</button>
+    <input class="exception-type" value="${escapeHtml(typeRef)}" placeholder="Exception type (e.g. EArgumentException)" />
+    <span class="exception-desc" contenteditable="true" data-placeholder="Description...">${escapeHtml(description)}</span>
+    <button class="btn-remove" title="Remove">&times;</button>
   `;
   row.querySelector('.exception-type')!.addEventListener('input', notifyChanged);
   row.querySelector('.exception-desc')!.addEventListener('input', notifyChanged);
@@ -353,47 +341,37 @@ function addExceptionRow(
     row.remove();
     notifyChanged();
   });
-  const btn = container.querySelector('.btn-add');
-  if (btn) {
-    container.insertBefore(row, btn);
-  } else {
-    container.appendChild(row);
-  }
+  container.appendChild(row);
 }
 
 function renderSeeAlso(seeAlso: DocModel['seeAlso']): void {
-  const container = $('#seealso-section .section-body')!;
-  container.querySelectorAll('.seealso-row').forEach(r => r.remove());
-
-  (seeAlso ?? []).forEach(sa => {
-    addSeeAlsoRow(container, sa.cref);
-  });
+  const container = $('#seealso-body')!;
+  container.innerHTML = '';
+  (seeAlso ?? []).forEach(sa => addSeeAlsoRow(container, sa.cref));
 }
 
-function addSeeAlsoRow(container: HTMLElement, cref: string = ''): void {
+function addSeeAlsoRow(container: HTMLElement, cref = ''): void {
   const row = document.createElement('div');
   row.className = 'seealso-row';
   row.innerHTML = `
-    <input class="seealso-cref" value="${escapeHtml(cref)}" placeholder="참조 (예: TMyClass.DoWork)" />
-    <button class="btn-remove" title="삭제">&times;</button>
+    <input class="seealso-cref" value="${escapeHtml(cref)}" placeholder="Reference (e.g. TMyClass.DoWork)" />
+    <button class="btn-remove" title="Remove">&times;</button>
   `;
   row.querySelector('.seealso-cref')!.addEventListener('input', notifyChanged);
   row.querySelector('.btn-remove')!.addEventListener('click', () => {
     row.remove();
     notifyChanged();
   });
-  const btn = container.querySelector('.btn-add');
-  if (btn) {
-    container.insertBefore(row, btn);
-  } else {
-    container.appendChild(row);
-  }
+  container.appendChild(row);
 }
 
+// ────────────────────────────────────────────
+// Section Collapsing
+// ────────────────────────────────────────────
 function setupCollapsible(): void {
-  document.querySelectorAll('.section-header.collapsible').forEach(header => {
-    header.addEventListener('click', () => {
-      const section = header.parentElement!;
+  document.querySelectorAll('.doc-heading').forEach(heading => {
+    heading.addEventListener('click', () => {
+      const section = heading.parentElement!;
       section.classList.toggle('collapsed');
     });
   });
@@ -401,24 +379,41 @@ function setupCollapsible(): void {
 
 function setupAddButtons(): void {
   $('#btn-add-example')?.addEventListener('click', () => {
-    const container = $('#examples-section .section-body')!;
-    addExampleRow(container);
-    $('#examples-section')!.classList.remove('collapsed');
+    addExampleRow($('#examples-body')!);
     notifyChanged();
   });
 
   $('#btn-add-exception')?.addEventListener('click', () => {
-    const container = $('#exceptions-section .section-body')!;
-    addExceptionRow(container);
-    $('#exceptions-section')!.classList.remove('collapsed');
+    addExceptionRow($('#exceptions-body')!);
     notifyChanged();
   });
 
   $('#btn-add-seealso')?.addEventListener('click', () => {
-    const container = $('#seealso-section .section-body')!;
-    addSeeAlsoRow(container);
-    $('#seealso-section')!.classList.remove('collapsed');
+    addSeeAlsoRow($('#seealso-body')!);
     notifyChanged();
+  });
+}
+
+// ────────────────────────────────────────────
+// Tab Switching
+// ────────────────────────────────────────────
+function setupTabs(): void {
+  document.querySelectorAll('#doc-tabs .tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = (tab as HTMLElement).dataset.tab;
+
+      document.querySelectorAll('#doc-tabs .tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      if (target === 'design') {
+        $('#doc-design')!.classList.remove('hidden');
+        $('#doc-preview')!.classList.add('hidden');
+      } else {
+        $('#doc-design')!.classList.add('hidden');
+        $('#doc-preview')!.classList.remove('hidden');
+        renderPreview($('#doc-preview')!, collectDoc(), currentElement);
+      }
+    });
   });
 }
 
@@ -440,70 +435,44 @@ function createEditor(element: HTMLElement, content: string, placeholder: string
 
 function initEditors(doc: DocModel): void {
   summaryEditor?.destroy();
-  summaryEditor = createEditor(
-    $('#summary-editor')!,
-    doc.summary,
-    '요약 설명을 입력하세요...'
-  );
+  summaryEditor = createEditor($('#summary-editor')!, doc.summary, 'Enter a summary description...');
 
   remarksEditor?.destroy();
-  remarksEditor = createEditor(
-    $('#remarks-editor')!,
-    doc.remarks ?? '',
-    '추가 설명...'
-  );
+  remarksEditor = createEditor($('#remarks-editor')!, doc.remarks ?? '', 'Additional remarks...');
 
   returnsEditor?.destroy();
-  returnsEditor = createEditor(
-    $('#returns-editor')!,
-    doc.returns ?? '',
-    '반환값 설명...'
-  );
+  returnsEditor = createEditor($('#returns-editor')!, doc.returns ?? '', 'Return value description...');
 
   valueEditor?.destroy();
-  valueEditor = createEditor(
-    $('#value-editor')!,
-    doc.value ?? '',
-    '프로퍼티 값 설명...'
-  );
+  valueEditor = createEditor($('#value-editor')!, doc.value ?? '', 'Property value description...');
 }
 
 // ────────────────────────────────────────────
 // Load Document
 // ────────────────────────────────────────────
-function loadDocument(element: ElementInfo, doc: DocModel): void {
+export function loadDocument(element: ElementInfo, doc: DocModel): void {
   currentElement = element;
   currentDoc = doc;
 
-  renderHeader(element);
+  renderSignature(element);
   initEditors(doc);
   renderParams(doc.params ?? [], element.params);
   renderTypeParams(doc.typeParams ?? [], element.genericParams);
 
-  // Returns/Value 섹션 가시성
+  // Return type display
   const hasReturn = element.kind === 'method' && !!element.returnType;
   const isProperty = element.kind === 'property';
   $('#returns-section')!.classList.toggle('hidden', !hasReturn);
   $('#value-section')!.classList.toggle('hidden', !isProperty);
 
+  if (hasReturn && element.returnType) {
+    $('#return-type')!.innerHTML = `Type: <strong>${escapeHtml(element.returnType)}</strong>`;
+  }
+
   renderExamples(doc.examples);
   renderExceptions(doc.exceptions);
   renderSeeAlso(doc.seeAlso);
   updateToolbarState(element);
-
-  // 데이터가 있는 접이식 섹션 자동 펼침
-  if (doc.remarks) {
-    $('#remarks-section')!.classList.remove('collapsed');
-  }
-  if ((doc.examples ?? []).length > 0) {
-    $('#examples-section')!.classList.remove('collapsed');
-  }
-  if ((doc.exceptions ?? []).length > 0) {
-    $('#exceptions-section')!.classList.remove('collapsed');
-  }
-  if ((doc.seeAlso ?? []).length > 0) {
-    $('#seealso-section')!.classList.remove('collapsed');
-  }
 }
 
 // ────────────────────────────────────────────
@@ -513,6 +482,7 @@ export function init(): void {
   initToolbar();
   setupCollapsible();
   setupAddButtons();
+  setupTabs();
 
   bridge.onElementLoaded((element, doc) => {
     loadDocument(element, doc);
@@ -523,33 +493,31 @@ export function init(): void {
     loadDocument(
       {
         kind: 'method',
-        name: 'UpdateUser',
-        qualifiedParent: 'TUserManager',
+        name: 'GetValueOrDefault',
+        qualifiedParent: 'Nullable<T>',
         methodKind: 'function',
         params: [
-          { name: 'AUserId', type: 'Integer' },
-          { name: 'ANewName', type: 'string', isConst: true },
+          { name: 'defaultValue', type: 'T' },
         ],
-        returnType: 'Boolean',
+        returnType: 'T',
         genericParams: ['T'],
       },
       {
-        summary: '사용자 정보를 <c>업데이트</c>합니다.',
+        summary: 'Retrieves the value of the current <c>Nullable{T}</c> object, or the specified default value.',
         params: [
-          { name: 'AUserId', description: '대상 사용자 ID' },
-          { name: 'ANewName', description: '새로운 이름' },
+          { name: 'defaultValue', description: 'A value to return if the <see cref="HasValue">HasValue</see> property is false.' },
         ],
         typeParams: [
-          { name: 'T', description: '사용자 타입' },
+          { name: 'T', description: 'The underlying value type of the nullable type.' },
         ],
-        returns: '<paramref name="AUserId"/>에 해당하는 사용자의 업데이트 성공 여부',
+        returns: 'The value of the <see cref="Value">Value</see> property if the <see cref="HasValue">HasValue</see> property is true; otherwise, the <paramref name="defaultValue"/> parameter.',
         examples: [
-          { description: '사용자 이름 변경', code: 'LResult := UserMgr.UpdateUser(1, \'홍길동\');' },
+          { description: 'Basic usage', code: 'var result = nullable.GetValueOrDefault(0);' },
         ],
         exceptions: [
-          { typeRef: 'EUserNotFoundException', description: '사용자를 찾을 수 없을 때 발생' },
+          { typeRef: 'EInvalidOperation', description: 'Thrown when the value cannot be retrieved.' },
         ],
-        seeAlso: [{ cref: 'TUserManager.FindUser' }],
+        seeAlso: [{ cref: 'Nullable<T>.HasValue' }],
       }
     );
   }

@@ -72,12 +72,20 @@ export interface DocModel {
   seeAlso?: SeeAlsoDoc[];
 }
 
+/** 트리용 요소 정보 (요소 + 문서 데이터 포함) */
+export interface TreeElementInfo extends ElementInfo {
+  doc: DocModel;
+}
+
 /** Delphi → WebView 메시지 */
 export type InboundMessage =
   | { type: 'loadDoc'; data: { element: ElementInfo; doc: DocModel } }
-  | { type: 'elementChanged'; data: { element: ElementInfo } };
+  | { type: 'elementChanged'; data: { element: ElementInfo } }
+  | { type: 'loadTree'; data: { fileName: string; elements: TreeElementInfo[] } };
 
 /** WebView → Delphi 메시지 */
 export type OutboundMessage =
   | { type: 'docUpdated'; doc: DocModel }
+  | { type: 'docUpdated'; doc: DocModel; elementFullName: string }
+  | { type: 'jumpToLine'; line: number }
   | { type: 'requestAutoComplete'; prefix: string; context: string };

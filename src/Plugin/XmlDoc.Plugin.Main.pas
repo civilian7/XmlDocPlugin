@@ -8,6 +8,7 @@ uses
   Vcl.Menus,
   Vcl.Dialogs,
   ToolsAPI,
+  XmlDoc.Plugin.DocExplorer,
   XmlDoc.Plugin.DocInspector,
   XmlDoc.Plugin.Shortcuts,
   XmlDoc.Plugin.UndocNavigator;
@@ -16,13 +17,16 @@ type
   /// <summary>XmlDoc 플러그인 메인 위저드. IDE 등록/해제 및 메뉴 통합을 담당합니다.</summary>
   TXmlDocWizard = class(TNotifierObject, IOTAWizard, IOTAMenuWizard)
   private
+    FDocExplorer: TDocExplorerForm;
     FDocInspector: TDocInspectorForm;
     FEditorNotifierIndex: Integer;
     FKeyBindingIndex: Integer;
     FMenuIntegration: TXmlDocMenuIntegration;
     FUndocNavigator: TUndocNavigator;
 
+    procedure CreateDocExplorer;
     procedure CreateDocInspector;
+    procedure DestroyDocExplorer;
     procedure DestroyDocInspector;
     procedure GenerateStubForCurrentElement;
     procedure SetupCallbacks;
@@ -45,6 +49,7 @@ type
     { IOTAMenuWizard }
     function GetMenuText: string;
 
+    property DocExplorer: TDocExplorerForm read FDocExplorer;
     property DocInspector: TDocInspectorForm read FDocInspector;
   end;
 
@@ -94,6 +99,8 @@ begin
         begin
           if Assigned(FDocInspector) then
             FDocInspector.HandleCursorChanged(ALine, ASource, AFileName);
+          if Assigned(FDocExplorer) then
+            FDocExplorer.HandleFileChanged(AFileName, ASource);
         end
       )
     );
@@ -136,6 +143,7 @@ begin
   end;
 
   FreeAndNil(FUndocNavigator);
+  DestroyDocExplorer;
   DestroyDocInspector;
   inherited;
 end;
@@ -148,6 +156,26 @@ end;
 procedure TXmlDocWizard.BeforeSave;
 begin
   // not used
+end;
+
+procedure TXmlDocWizard.CreateDocExplorer;
+begin
+  if not Assigned(FDocExplorer) then
+  begin
+    FDocExplorer := TDocExplorerForm.Create(nil);
+    FDocExplorer.Show;
+    FDocExplorer.RefreshFromCurrentEditor;
+  end
+  else
+  begin
+    if FDocExplorer.Visible then
+      FDocExplorer.Hide
+    else
+    begin
+      FDocExplorer.Show;
+      FDocExplorer.RefreshFromCurrentEditor;
+    end;
+  end;
 end;
 
 procedure TXmlDocWizard.CreateDocInspector;
@@ -173,6 +201,11 @@ end;
 procedure TXmlDocWizard.Destroyed;
 begin
   // not used
+end;
+
+procedure TXmlDocWizard.DestroyDocExplorer;
+begin
+  FreeAndNil(FDocExplorer);
 end;
 
 procedure TXmlDocWizard.DestroyDocInspector;
@@ -265,9 +298,32 @@ end;
 procedure TXmlDocWizard.SetupCallbacks;
 begin
   SetToggleInspectorCallback(
-    procedure
+    function: Boolean
     begin
       CreateDocInspector;
+      Result := Assigned(FDocInspector) and FDocInspector.Visible;
+    end
+  );
+
+  SetToggleDocExplorerCallback(
+    function: Boolean
+    begin
+      CreateDocExplorer;
+      Result := Assigned(FDocExplorer) and FDocExplorer.Visible;
+    end
+  );
+
+  SetIsInspectorVisibleFunc(
+    function: Boolean
+    begin
+      Result := Assigned(FDocInspector) and FDocInspector.Visible;
+    end
+  );
+
+  SetIsDocExplorerVisibleFunc(
+    function: Boolean
+    begin
+      Result := Assigned(FDocExplorer) and FDocExplorer.Visible;
     end
   );
 

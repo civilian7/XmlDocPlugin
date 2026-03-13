@@ -27,6 +27,12 @@ web/node_modules/
 # Logs
 logs/
 
+# Claude Code
+.claude/
+CLAUDE.md
+XmlDocPlugin_설계서.md
+docs/session-*.md
+
 # OS
 Thumbs.db
 Desktop.ini

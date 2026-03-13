@@ -1,0 +1,250 @@
+/* ════════════════════════════════════════════
+   Documentation Explorer — Tree + Editor Split
+   ════════════════════════════════════════════ */
+
+/* styles.css body 재정의 — explorer는 container 기반 레이아웃 */
+body {
+  display: block;
+  overflow: hidden;
+}
+
+#explorer-container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Tree Panel ── */
+#tree-panel {
+  width: 260px;
+  min-width: 150px;
+  max-width: 50%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+#tree-header {
+  display: flex;
+  align-items: center;
+  height: 33px;
+  box-sizing: border-box;
+  padding: 0 8px 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#tree-header-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#tree-header-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.tree-header-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 9px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tree-header-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+#tree-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 0;
+}
+
+/* ── Splitter ── */
+#explorer-splitter {
+  width: 4px;
+  background: var(--border);
+  cursor: col-resize;
+  flex-shrink: 0;
+}
+
+#explorer-splitter:hover {
+  background: var(--accent);
+}
+
+/* ── Editor Panel ── */
+#editor-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+  overflow: hidden;
+}
+
+/* Explorer에서 toolbar 높이를 tree-header와 맞춤 */
+#explorer-container #doc-toolbar {
+  height: 33px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* ── Tree Styles ── */
+.tree-empty {
+  padding: 16px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.tree-root {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tree-children {
+  list-style: none;
+  padding: 0 0 0 12px;
+  margin: 0;
+}
+
+.tree-node {
+  margin: 0;
+}
+
+.tree-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px 2px 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+.tree-row:hover {
+  background: var(--bg-hover);
+}
+
+.tree-row.tree-selected {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+/* Arrow */
+.tree-arrow {
+  width: 14px;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.tree-arrow-active {
+  cursor: pointer;
+}
+
+.tree-arrow-active:hover {
+  color: var(--text);
+}
+
+/* Kind icon */
+.tree-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 3px;
+  flex-shrink: 0;
+  color: #fff;
+  background: var(--text-muted);
+}
+
+.tree-icon-class     { background: #0b7285; }
+.tree-icon-record    { background: #5c940d; }
+.tree-icon-intf      { background: #862e9c; }
+.tree-icon-method    { background: #d9480f; }
+.tree-icon-prop      { background: #5f3dc4; }
+.tree-icon-field     { background: #2b8a3e; }
+.tree-icon-const     { background: #e67700; }
+.tree-icon-type      { background: #364fc7; }
+.tree-icon-unit      { background: #495057; }
+
+/* Label */
+.tree-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Doc status dot */
+.tree-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.tree-dot-ok {
+  background: #51cf66;
+}
+
+.tree-dot-none {
+  background: #ced4da;
+}
+
+/* ── Context Menu ── */
+.tree-context-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 140px;
+  padding: 4px 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-size: 12px;
+}
+
+.tree-context-item {
+  padding: 5px 12px;
+  cursor: pointer;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.tree-context-item:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+}

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentation Explorer</title>
+</head>
+<body>
+  <div id="explorer-container">
+    <!-- Tree Panel -->
+    <div id="tree-panel">
+      <div id="tree-header">
+        <span id="tree-header-title">Documentation Explorer</span>
+        <span id="tree-header-actions">
+          <button id="btn-expand-all" class="tree-header-btn" title="Expand All">&#x25BC;</button>
+          <button id="btn-collapse-all" class="tree-header-btn" title="Collapse All">&#x25B6;</button>
+        </span>
+      </div>
+      <div id="tree-content"></div>
+    </div>
+
+    <!-- Splitter -->
+    <div id="explorer-splitter"></div>
+
+    <!-- Editor Panel -->
+    <div id="editor-panel">
+      <!-- Formatting Toolbar -->
+      <div id="doc-toolbar"></div>
+
+      <!-- Design View -->
+      <div id="doc-design">
+        <!-- Member Signature Header -->
+        <div id="member-signature">Select an element from the tree</div>
+
+        <!-- Scrollable Document -->
+        <div id="doc-content">
+          <!-- Summary -->
+          <div class="doc-section" id="summary-section">
+            <h3 class="doc-heading" data-section="summary"><span class="collapse-icon">&#x25BC;</span> Summary</h3>
+            <div class="doc-section-body">
+              <div class="doc-editor" id="summary-editor"></div>
+            </div>
+          </div>
+
+          <!-- Syntax: Parameters -->
+          <div class="doc-section hidden" id="params-section">
+            <h3 class="doc-heading" data-section="params"><span class="collapse-icon">&#x25BC;</span> Parameters</h3>
+            <div class="doc-section-body">
+              <table class="param-table">
+                <thead><tr><th class="th-name">Parameter</th><th>Description</th></tr></thead>
+                <tbody id="params-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Syntax: Type Parameters -->
+          <div class="doc-section hidden" id="typeparams-section">
+            <h3 class="doc-heading" data-section="typeparams"><span class="collapse-icon">&#x25BC;</span> Type Parameters</h3>
+            <div class="doc-section-body">
+              <table class="param-table">
+                <thead><tr><th class="th-name">Type Parameter</th><th>Description</th></tr></thead>
+                <tbody id="typeparams-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Return Value -->
+          <div class="doc-section hidden" id="returns-section">
+            <h3 class="doc-heading" data-section="returns"><span class="collapse-icon">&#x25BC;</span> Return Value</h3>
+            <div class="doc-section-body">
+              <div class="return-type" id="return-type"></div>
+              <div class="doc-editor" id="returns-editor"></div>
+            </div>
+          </div>
+
+          <!-- Value (Property) -->
+          <div class="doc-section hidden" id="value-section">
+            <h3 class="doc-heading" data-section="value"><span class="collapse-icon">&#x25BC;</span> Value</h3>
+            <div class="doc-section-body">
+              <div class="doc-editor" id="value-editor"></div>
+            </div>
+          </div>
+
+          <!-- Remarks -->
+          <div class="doc-section" id="remarks-section">
+            <h3 class="doc-heading" data-section="remarks"><span class="collapse-icon">&#x25BC;</span> Remarks</h3>
+            <div class="doc-section-body">
+              <div class="doc-editor" id="remarks-editor"></div>
+            </div>
+          </div>
+
+          <!-- Examples -->
+          <div class="doc-section" id="examples-section">
+            <h3 class="doc-heading" data-section="examples"><span class="collapse-icon">&#x25BC;</span> Examples</h3>
+            <div class="doc-section-body">
+              <div id="examples-body"></div>
+              <button id="btn-add-example" class="btn-add">+ Example</button>
+            </div>
+          </div>
+
+          <!-- Exceptions -->
+          <div class="doc-section" id="exceptions-section">
+            <h3 class="doc-heading" data-section="exceptions"><span class="collapse-icon">&#x25BC;</span> Exceptions</h3>
+            <div class="doc-section-body">
+              <div id="exceptions-body"></div>
+              <button id="btn-add-exception" class="btn-add">+ Exception</button>
+            </div>
+          </div>
+
+          <!-- See Also -->
+          <div class="doc-section" id="seealso-section">
+            <h3 class="doc-heading" data-section="seealso"><span class="collapse-icon">&#x25BC;</span> See Also</h3>
+            <div class="doc-section-body">
+              <div id="seealso-body"></div>
+              <button id="btn-add-seealso" class="btn-add">+ See Also</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview View -->
+      <div id="doc-preview" class="hidden"></div>
+
+      <!-- Bottom Tab Bar -->
+      <div id="doc-tabs">
+        <button class="tab active" data-tab="design">Design</button>
+        <button class="tab" data-tab="preview">Preview</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/explorer-main.ts"></script>
+</body>
+</html>
