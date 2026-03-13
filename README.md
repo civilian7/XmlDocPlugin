@@ -10,6 +10,14 @@ XML Documentation comments (`///`) are a standard practice in C# and many other 
 
 This project was born from a simple belief: **writing documentation should be a first-class feature of any modern IDE, not a paid add-on.** We hope that by building an open-source alternative, we can both serve the community today and encourage Embarcadero to eventually provide official XML documentation support in Delphi.
 
+## Screenshots
+
+### Doc Inspector
+![Doc Inspector](docs/assets/inspector.png)
+
+### Documentation Explorer
+![Documentation Explorer](docs/assets/explorer.png)
+
 ## Features
 
 ### IDE Plugin (BPL)

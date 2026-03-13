@@ -10,6 +10,14 @@ XML Documentation 주석(`///`)은 C#을 비롯한 많은 언어에서 표준적
 
 이 프로젝트는 단순한 믿음에서 출발했습니다. **문서화는 모든 현대적인 IDE가 기본으로 제공해야 할 기능이지, 유료 애드온이어서는 안 된다는 것입니다.** 오픈소스 대안을 만들어 커뮤니티에 기여하는 동시에, Embarcadero가 Delphi에 공식적으로 XML Documentation 지원을 제공하는 날이 오기를 바랍니다.
 
+## 스크린샷
+
+### Doc Inspector
+![Doc Inspector](docs/assets/inspector.png)
+
+### Documentation Explorer
+![Documentation Explorer](docs/assets/explorer.png)
+
 ## 주요 기능
 
 ### IDE 플러그인 (BPL)
