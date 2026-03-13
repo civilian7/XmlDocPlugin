@@ -111,4 +111,6 @@ brcc32 XmlDocEditor.rc
 
 ## 라이선스
 
+이 프로젝트는 [MIT 라이선스](LICENSE)로 배포됩니다.
+
 - DelphiAST: [MPL 2.0](vendor/DelphiAST/LICENSE)
