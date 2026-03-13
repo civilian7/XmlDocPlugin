@@ -4,6 +4,12 @@ An **XML Documentation** plugin integrated into the Delphi IDE. Write C#-style `
 
 [한국어](README.ko.md)
 
+## Why This Project?
+
+XML Documentation comments (`///`) are a standard practice in C# and many other languages, yet Delphi has never shipped with built-in tooling to author or manage them. The only option available today is [Documentation Insight](https://www.devjetsoftware.com/products/documentation-insight/) by DevJet Software — a well-made commercial product, but its licensing cost can be a barrier, especially for individual developers, small teams, and open-source contributors.
+
+This project was born from a simple belief: **writing documentation should be a first-class feature of any modern IDE, not a paid add-on.** We hope that by building an open-source alternative, we can both serve the community today and encourage Embarcadero to eventually provide official XML documentation support in Delphi.
+
 ## Features
 
 ### IDE Plugin (BPL)

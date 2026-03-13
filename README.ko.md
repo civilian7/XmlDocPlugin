@@ -4,6 +4,12 @@
 
 Delphi IDE에 통합되는 **XML Documentation** 플러그인입니다. C# 스타일의 `///` XML 주석을 WYSIWYG 에디터로 작성하고, 프로젝트 전체의 API 문서를 자동 생성할 수 있습니다.
 
+## 이 프로젝트를 시작한 이유
+
+XML Documentation 주석(`///`)은 C#을 비롯한 많은 언어에서 표준적으로 사용되지만, Delphi에는 이를 작성하거나 관리하는 도구가 내장되어 있지 않습니다. 현재 유일한 선택지는 DevJet Software의 [Documentation Insight](https://www.devjetsoftware.com/products/documentation-insight/)로, 잘 만들어진 상용 제품이지만 라이선스 비용이 개인 개발자나 소규모 팀, 오픈소스 기여자에게는 부담이 될 수 있습니다.
+
+이 프로젝트는 단순한 믿음에서 출발했습니다. **문서화는 모든 현대적인 IDE가 기본으로 제공해야 할 기능이지, 유료 애드온이어서는 안 된다는 것입니다.** 오픈소스 대안을 만들어 커뮤니티에 기여하는 동시에, Embarcadero가 Delphi에 공식적으로 XML Documentation 지원을 제공하는 날이 오기를 바랍니다.
+
 ## 주요 기능
 
 ### IDE 플러그인 (BPL)
