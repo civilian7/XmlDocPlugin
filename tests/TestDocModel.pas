@@ -14,6 +14,8 @@ type
   TTestXmlDocModel = class
   private
     FModel: TXmlDocModel;
+    FChanged: Boolean;
+    procedure ModelChanged(Sender: TObject);
 
   public
     [Setup]
@@ -86,6 +88,9 @@ type
     procedure TestLoadFromXml_Example;
 
     [Test]
+    procedure TestLoadFromXml_ExampleDescriptionAndCode;
+
+    [Test]
     procedure TestLoadFromXml_SeeAlso;
 
     [Test]
@@ -110,7 +115,7 @@ begin
   Assert.AreEqual('', FModel.Summary);
   Assert.AreEqual('', FModel.Remarks);
   Assert.AreEqual('', FModel.Returns);
-  Assert.AreEqual(0, FModel.Params.Count);
+  Assert.AreEqual<NativeInt>(0, FModel.Params.Count);
 end;
 
 procedure TTestXmlDocModel.TestLoadFromXml_Summary;
@@ -134,13 +139,13 @@ begin
   FModel.LoadFromXml(CXml);
 
   Assert.AreEqual('사용자 정보를 업데이트합니다.', FModel.Summary);
-  Assert.AreEqual(2, FModel.Params.Count);
+  Assert.AreEqual<NativeInt>(2, FModel.Params.Count);
   Assert.AreEqual('AUserId', FModel.Params[0].Name);
   Assert.AreEqual('대상 사용자 ID', FModel.Params[0].Description);
   Assert.AreEqual('ANewName', FModel.Params[1].Name);
   Assert.AreEqual('새로운 이름', FModel.Params[1].Description);
   Assert.AreEqual('업데이트 성공 여부', FModel.Returns);
-  Assert.AreEqual(1, FModel.Exceptions.Count);
+  Assert.AreEqual<NativeInt>(1, FModel.Exceptions.Count);
   Assert.AreEqual('EUserNotFoundException', FModel.Exceptions[0].TypeRef);
   Assert.AreEqual('사용자를 찾을 수 없을 때 발생', FModel.Exceptions[0].Description);
 end;
@@ -226,7 +231,7 @@ begin
     Assert.AreEqual('메서드 설명', LObj.GetValue<string>('summary'));
     Assert.AreEqual('결과', LObj.GetValue<string>('returns'));
     LArr := LObj.GetValue<TJSONArray>('params');
-    Assert.AreEqual(1, LArr.Count);
+    Assert.AreEqual<NativeInt>(1, LArr.Count);
     Assert.AreEqual('AName', (LArr.Items[0] as TJSONObject).GetValue<string>('name'));
   finally
     LObj.Free;
@@ -258,10 +263,10 @@ begin
 
   Assert.AreEqual('업데이트 메서드', FModel.Summary);
   Assert.AreEqual('성공 여부', FModel.Returns);
-  Assert.AreEqual(2, FModel.Params.Count);
+  Assert.AreEqual<NativeInt>(2, FModel.Params.Count);
   Assert.AreEqual('AId', FModel.Params[0].Name);
   Assert.AreEqual('AName', FModel.Params[1].Name);
-  Assert.AreEqual(1, FModel.Exceptions.Count);
+  Assert.AreEqual<NativeInt>(1, FModel.Exceptions.Count);
   Assert.AreEqual('ENotFound', FModel.Exceptions[0].TypeRef);
 end;
 
@@ -328,17 +333,17 @@ begin
   Assert.IsFalse(FModel.IsModified);
 end;
 
-procedure TTestXmlDocModel.TestOnChanged_Fires;
-var
-  LFired: Boolean;
+procedure TTestXmlDocModel.ModelChanged(Sender: TObject);
 begin
-  LFired := False;
-  FModel.OnChanged := procedure(Sender: TObject)
-    begin
-      LFired := True;
-    end;
+  FChanged := True;
+end;
+
+procedure TTestXmlDocModel.TestOnChanged_Fires;
+begin
+  FChanged := False;
+  FModel.OnChanged := ModelChanged;
   FModel.Summary := '이벤트 테스트';
-  Assert.IsTrue(LFired);
+  Assert.IsTrue(FChanged);
 end;
 
 procedure TTestXmlDocModel.TestAssign;
@@ -357,7 +362,7 @@ begin
     LTarget.Assign(FModel);
     Assert.AreEqual('원본', LTarget.Summary);
     Assert.AreEqual('반환값', LTarget.Returns);
-    Assert.AreEqual(1, LTarget.Params.Count);
+    Assert.AreEqual<NativeInt>(1, LTarget.Params.Count);
     Assert.AreEqual('ATest', LTarget.Params[0].Name);
   finally
     LTarget.Free;
@@ -393,7 +398,7 @@ const
   CXml = '<exception cref="EInvalidOp">잘못된 연산</exception>';
 begin
   FModel.LoadFromXml(CXml);
-  Assert.AreEqual(1, FModel.Exceptions.Count);
+  Assert.AreEqual<NativeInt>(1, FModel.Exceptions.Count);
   Assert.AreEqual('EInvalidOp', FModel.Exceptions[0].TypeRef);
   Assert.AreEqual('잘못된 연산', FModel.Exceptions[0].Description);
 end;
@@ -403,9 +408,25 @@ const
   CXml = '<example title="사용 예시"><code>DoSomething;</code></example>';
 begin
   FModel.LoadFromXml(CXml);
-  Assert.AreEqual(1, FModel.Examples.Count);
+  Assert.AreEqual<NativeInt>(1, FModel.Examples.Count);
   Assert.AreEqual('사용 예시', FModel.Examples[0].Title);
   Assert.AreEqual('DoSomething;', FModel.Examples[0].Code);
+end;
+
+procedure TTestXmlDocModel.TestLoadFromXml_ExampleDescriptionAndCode;
+const
+  CXml = '<example title="Sample">Call Run first.' +
+    '<code><![CDATA[if A < B then Run;]]></code></example>';
+begin
+  FModel.LoadFromXml(CXml);
+  Assert.AreEqual<NativeInt>(1, FModel.Examples.Count);
+  Assert.AreEqual('Sample', FModel.Examples[0].Title);
+  Assert.AreEqual('Call Run first.', FModel.Examples[0].Description);
+  Assert.AreEqual('if A < B then Run;', FModel.Examples[0].Code);
+  FModel.LoadFromXml(FModel.ToXml);
+  Assert.AreEqual<NativeInt>(1, FModel.Examples.Count);
+  Assert.AreEqual('Call Run first.', FModel.Examples[0].Description);
+  Assert.AreEqual('if A < B then Run;', FModel.Examples[0].Code);
 end;
 
 procedure TTestXmlDocModel.TestLoadFromXml_SeeAlso;
@@ -413,7 +434,7 @@ const
   CXml = '<seealso cref="TMyClass.DoOther"/>';
 begin
   FModel.LoadFromXml(CXml);
-  Assert.AreEqual(1, FModel.SeeAlso.Count);
+  Assert.AreEqual<NativeInt>(1, FModel.SeeAlso.Count);
   Assert.AreEqual('TMyClass.DoOther', FModel.SeeAlso[0].Cref);
 end;
 
@@ -422,7 +443,7 @@ const
   CXml = '<typeparam name="T">요소 타입</typeparam>';
 begin
   FModel.LoadFromXml(CXml);
-  Assert.AreEqual(1, FModel.TypeParams.Count);
+  Assert.AreEqual<NativeInt>(1, FModel.TypeParams.Count);
   Assert.AreEqual('T', FModel.TypeParams[0].Name);
   Assert.AreEqual('요소 타입', FModel.TypeParams[0].Description);
 end;

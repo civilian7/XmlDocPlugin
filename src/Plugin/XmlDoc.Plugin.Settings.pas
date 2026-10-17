@@ -139,6 +139,7 @@ constructor TPluginSettings.Create;
 begin
   inherited Create;
   LoadDefaults;
+  Load;
 end;
 
 class function TPluginSettings.Instance: TPluginSettings;

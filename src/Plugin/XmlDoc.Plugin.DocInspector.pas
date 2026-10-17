@@ -10,10 +10,13 @@ uses
   System.Win.Registry,
   Winapi.Messages,
   Winapi.Windows,
+  Winapi.ActiveX,
   Vcl.Controls,
   Vcl.ExtCtrls,
   Vcl.Forms,
   Vcl.Edge,
+  Vcl.StdCtrls,
+  XmlDoc.Plugin.Browser,
   WebView2,
   DockForm,
   ToolsAPI,
@@ -29,7 +32,8 @@ type
   /// <summary>WebView2 기반 XML 문서 편집기를 호스팅하는 Dockable 패널</summary>
   TDocInspectorForm = class(TDockableForm)
   private
-    FBrowser: TEdgeBrowser;
+    FBrowser: TXmlDocBrowser;
+    FBrowserError: TLabel;
     FBrowserReady: Boolean;
     FCursorPollTimer: TTimer;
     FCurrentElement: TCodeElementInfo;
@@ -56,8 +60,6 @@ type
     procedure HandleDocUpdated(const AJsonStr: string);
     procedure InitTimerFired(Sender: TObject);
     function IsSameElement(const AElement: TCodeElementInfo): Boolean;
-    procedure LoadBounds;
-    procedure SaveBounds;
     procedure SendToEditor(const AMessageType, APayload: string);
     procedure UpdateFromCursor;
   protected
@@ -90,8 +92,10 @@ begin
   inherited Create(AOwner);
 
   Caption := 'Doc Inspector';
-  DeskSection := 'XmlDocPlugin';
+  Name := 'XmlDocDocInspector';
+  DeskSection := 'XmlDocDocInspector';
   AutoSave := True;
+  SaveStateNecessary := True;
   KeyPreview := True;
 
   FDocModel := TXmlDocModel.Create;
@@ -105,7 +109,8 @@ begin
   FLastElementLine := -1;
   FLastPolledLine := -1;
 
-  LoadBounds;
+  Width := 420;
+  Height := 600;
 
   // TTimer로 브라우저 생성 지연 — 폼이 완전히 표시된 후 실행
   FInitTimer := TTimer.Create(Self);
@@ -122,8 +127,8 @@ end;
 
 destructor TDocInspectorForm.Destroy;
 begin
+  SaveStateNecessary := True;
   TParamDictionary.Instance.SaveToFile;
-  SaveBounds;
   FDocParser.Free;
   FDocModel.Free;
 
@@ -202,7 +207,13 @@ begin
     TPath.Combine(GetEnvironmentVariable('LOCALAPPDATA'), 'XmlDocPlugin'), 'WebView2');
   ForceDirectories(LDataDir);
 
-  FBrowser := TEdgeBrowser.Create(Self);
+  FBrowserError := TLabel.Create(Self);
+  FBrowserError.Parent := Self;
+  FBrowserError.Align := alTop;
+  FBrowserError.WordWrap := True;
+  FBrowserError.Visible := False;
+
+  FBrowser := TXmlDocBrowser.Create(Self);
   FBrowser.UserDataFolder := LDataDir;
   FBrowser.OnCreateWebViewCompleted := BrowserCreateWebViewCompleted;
   FBrowser.OnNavigationCompleted := BrowserNavigationCompleted;
@@ -212,35 +223,28 @@ begin
 
   // TDockableForm에서 Parent 설정만으로 자동 초기화되지 않는 경우 명시적 호출
   if not FBrowser.WebViewCreated then
-    FBrowser.ReinitializeWebView;
+    FBrowser.CreateWebView;
 end;
 
 procedure TDocInspectorForm.BrowserCreateWebViewCompleted(Sender: TCustomEdgeBrowser; AResult: HRESULT);
-var
-  LStream: TResourceStream;
-  LBytes: TBytes;
-  LHtml: string;
 begin
-  if AResult <> S_OK then
+  FBrowserReady := False;
+  FBrowserError.Visible := Winapi.Windows.Failed(AResult);
+  if Winapi.Windows.Failed(AResult) then
+  begin
+    FBrowserError.Caption := 'WebView2 could not start (0x' + IntToHex(AResult, 8) +
+      '). Install the WebView2 Runtime and place the matching WebView2Loader.dll beside XmlDocPlugin.bpl.';
     Exit;
-
-  // 리소스에서 HTML 로드
+  end;
   try
-    LStream := TResourceStream.Create(
-      FindClassHInstance(TDocInspectorForm), CEditorResourceName, RT_RCDATA);
-    try
-      SetLength(LBytes, LStream.Size);
-      LStream.ReadBuffer(LBytes, Length(LBytes));
-    finally
-      LStream.Free;
-    end;
+    FBrowser.LoadEditorResource(FindClassHInstance(TDocInspectorForm), CEditorResourceName);
   except
     on E: Exception do
-      Exit;
+    begin
+      FBrowserError.Caption := 'Cannot load the documentation editor: ' + E.Message;
+      FBrowserError.Visible := True;
+    end;
   end;
-
-  LHtml := TEncoding.UTF8.GetString(LBytes);
-  FBrowser.NavigateToString(LHtml);
 end;
 
 procedure TDocInspectorForm.BrowserNavigationCompleted(Sender: TCustomEdgeBrowser; IsSuccess: Boolean; WebErrorStatus: COREWEBVIEW2_WEB_ERROR_STATUS);
@@ -249,13 +253,9 @@ begin
     Exit;
 
   FBrowserReady := True;
-
-  // 보류 중인 로드가 있으면 실행
-  if FPendingLoad then
-  begin
-    FPendingLoad := False;
-    UpdateFromCursor;
-  end;
+  FBrowser.RestoreSections;
+  FPendingLoad := False;
+  RefreshFromCurrentEditor;
 end;
 
 procedure TDocInspectorForm.BrowserWebMessageReceived(Sender: TCustomEdgeBrowser; Args: TWebMessageReceivedEventArgs);
@@ -265,18 +265,29 @@ var
   LMsgType: string;
   LDocObj: TJSONObject;
 begin
+  LJson := nil;
   Args.ArgsInterface.TryGetWebMessageAsString(LJson);
   if LJson = nil then
     Exit;
 
-  LMsg := TJSONObject.ParseJSONValue(string(LJson)) as TJSONObject;
+  try
+    LMsg := TJSONObject.ParseJSONValue(string(LJson)) as TJSONObject;
+  finally
+    CoTaskMemFree(LJson);
+  end;
   if LMsg = nil then
     Exit;
 
   try
     LMsgType := LMsg.GetValue<string>('type');
 
-    if LMsgType = 'docUpdated' then
+    if LMsgType = 'sectionStateChanged' then
+    begin
+      LDocObj := LMsg.GetValue<TJSONObject>('sections');
+      if Assigned(LDocObj) then
+        FBrowser.SaveSections(LDocObj.ToJSON);
+    end
+    else if LMsgType = 'docUpdated' then
     begin
       LDocObj := LMsg.GetValue<TJSONObject>('doc');
       if Assigned(LDocObj) then
@@ -522,6 +533,8 @@ var
   LLine: Integer;
   LFileName: string;
 begin
+  if Assigned(FBrowser) and FBrowserReady then
+    FBrowser.ApplySettings;
   LEditor := TDocOTAWriter.GetCurrentSourceEditor;
   if not Assigned(LEditor) then
     Exit;
@@ -573,58 +586,6 @@ begin
   FLastElementLine := -1;
 
   HandleCursorChanged(LLine, LSource, LFileName);
-end;
-
-procedure TDocInspectorForm.LoadBounds;
-const
-  CRegKey = 'Software\XmlDocPlugin\DocInspector';
-var
-  LReg: TRegistry;
-begin
-  // 기본 크기
-  Width := 420;
-  Height := 600;
-
-  LReg := TRegistry.Create(KEY_READ);
-  try
-    LReg.RootKey := HKEY_CURRENT_USER;
-    if LReg.OpenKeyReadOnly(CRegKey) then
-    begin
-      if LReg.ValueExists('Left') then
-        Left := LReg.ReadInteger('Left');
-      if LReg.ValueExists('Top') then
-        Top := LReg.ReadInteger('Top');
-      if LReg.ValueExists('Width') then
-        Width := LReg.ReadInteger('Width');
-      if LReg.ValueExists('Height') then
-        Height := LReg.ReadInteger('Height');
-      LReg.CloseKey;
-    end;
-  finally
-    LReg.Free;
-  end;
-end;
-
-procedure TDocInspectorForm.SaveBounds;
-const
-  CRegKey = 'Software\XmlDocPlugin\DocInspector';
-var
-  LReg: TRegistry;
-begin
-  LReg := TRegistry.Create(KEY_WRITE);
-  try
-    LReg.RootKey := HKEY_CURRENT_USER;
-    if LReg.OpenKey(CRegKey, True) then
-    begin
-      LReg.WriteInteger('Left', Left);
-      LReg.WriteInteger('Top', Top);
-      LReg.WriteInteger('Width', Width);
-      LReg.WriteInteger('Height', Height);
-      LReg.CloseKey;
-    end;
-  finally
-    LReg.Free;
-  end;
 end;
 
 procedure TDocInspectorForm.CaptureParamDescriptions;

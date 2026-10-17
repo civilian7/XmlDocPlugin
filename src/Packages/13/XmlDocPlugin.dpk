@@ -40,6 +40,7 @@ requires
   VclSmp;
 
 contains
+  XmlDoc.Plugin.Browser in '..\..\Plugin\XmlDoc.Plugin.Browser.pas',
   XmlDoc.Consts in '..\..\Core\XmlDoc.Consts.pas',
   XmlDoc.Model in '..\..\Core\XmlDoc.Model.pas',
   XmlDoc.CodeGen in '..\..\Core\XmlDoc.CodeGen.pas',

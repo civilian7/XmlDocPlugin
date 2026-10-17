@@ -1,4 +1,4 @@
-unit TestDocStubGen;
+﻿unit TestDocStubGen;
 
 interface
 
@@ -189,7 +189,7 @@ begin
   LElement.Params[0].TypeName := 'string';
   LModel := TDocStubGenerator.GenerateStub(LElement);
   try
-    Assert.AreEqual(1, LModel.Params.Count);
+    Assert.AreEqual<NativeInt>(1, LModel.Params.Count);
     Assert.AreEqual('AFileName', LModel.Params[0].Name);
     Assert.AreEqual('파일 이름', LModel.Params[0].Description);
   finally
@@ -259,7 +259,7 @@ begin
   LElement.Params[0].TypeName := 'TObject';
   LModel := TDocStubGenerator.GenerateStub(LElement);
   try
-    Assert.AreEqual(1, LModel.Params.Count);
+    Assert.AreEqual<NativeInt>(1, LModel.Params.Count);
     Assert.AreEqual('이벤트 발생 객체', LModel.Params[0].Description);
   finally
     LModel.Free;
@@ -350,7 +350,7 @@ begin
   LElement.GenericParams[1] := 'TValue';
   LModel := TDocStubGenerator.GenerateStub(LElement);
   try
-    Assert.AreEqual(2, LModel.TypeParams.Count);
+    Assert.AreEqual<NativeInt>(2, LModel.TypeParams.Count);
     Assert.AreEqual('TKey', LModel.TypeParams[0].Name);
     Assert.AreEqual('TValue', LModel.TypeParams[1].Name);
     Assert.Contains(LModel.TypeParams[0].Description, 'TKey');
@@ -375,7 +375,7 @@ begin
   LElement.Params[2].TypeName := 'Integer';
   LModel := TDocStubGenerator.GenerateStub(LElement);
   try
-    Assert.AreEqual(3, LModel.Params.Count);
+    Assert.AreEqual<NativeInt>(3, LModel.Params.Count);
     Assert.AreEqual('원본', LModel.Params[0].Description);
     Assert.AreEqual('대상', LModel.Params[1].Description);
     Assert.AreEqual('개수', LModel.Params[2].Description);

@@ -52,6 +52,9 @@ type
     procedure TestGetElementAtLine_Constant;
 
     [Test]
+    procedure TestGetElementAtLine_TypedAndMultipleConstants;
+
+    [Test]
     procedure TestGetElementAtLine_Field;
 
     [Test]
@@ -285,6 +288,28 @@ begin
 
   Assert.AreEqual(dekConstant, LElement.Kind);
   Assert.AreEqual('MaxValue', LElement.Name);
+end;
+
+procedure TTestDocParser.TestGetElementAtLine_TypedAndMultipleConstants;
+const
+  CSource = 'unit TestUnit;' + sLineBreak +
+    'interface' + sLineBreak +
+    'const' + sLineBreak +
+    '  Limit: Integer = 42;' + sLineBreak +
+    '  Other = 7;' + sLineBreak +
+    'implementation' + sLineBreak + 'end.';
+var
+  LElement: TCodeElementInfo;
+begin
+  FParser.ParseSource(CSource);
+  LElement := FParser.GetElementAtLine(4);
+  Assert.AreEqual(dekConstant, LElement.Kind);
+  Assert.AreEqual('Limit', LElement.Name);
+  Assert.AreEqual(4, LElement.LineNumber);
+  LElement := FParser.GetElementAtLine(5);
+  Assert.AreEqual(dekConstant, LElement.Kind);
+  Assert.AreEqual('Other', LElement.Name);
+  Assert.AreEqual(5, LElement.LineNumber);
 end;
 
 procedure TTestDocParser.TestGetElementAtLine_Field;

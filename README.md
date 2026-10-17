@@ -107,6 +107,20 @@ brcc32 XmlDocEditor.rc
 # Open src/Packages/13/XmlDocPlugin.dpk → Build + Install
 ```
 
+For Delphi 12.x, run `powershell -File .\build-delphi12.ps1` from the
+repository root, or open `src/Packages/12/XmlDocPlugin.dproj` in the IDE.
+Delphi 12 uses a Win32 design-time package, including on 64-bit Windows.
+The script builds both web pages and their resources, compiles the package,
+and places the official x86 `WebView2Loader.dll` and its license beside the BPL.
+Use `-Bds` to select the Delphi installation and `-OutputDir` to select another
+BPL directory. Install the resulting `XmlDocPlugin290.bpl` and restart the IDE.
+The Microsoft WebView2 Runtime must also be installed.
+
+The **Editor theme** setting controls the Inspector and Explorer web editors:
+`light`, `dark`, or `auto` (Windows appearance). Changes apply immediately.
+Section expansion choices are saved separately for each editor. Docking is
+stored in the IDE desktop layout and follows the IDE's layout save/restore settings.
+
 ## Tech Stack
 
 | Area | Technology |

@@ -534,6 +534,12 @@ begin
     begin
       Result.Kind := dekConstant;
       Result.Name := ANode.GetAttribute(anName);
+      if Result.Name = '' then
+      begin
+        LTypeNode := ANode.FindNode(ntName);
+        if LTypeNode is TValuedSyntaxNode then
+          Result.Name := TValuedSyntaxNode(LTypeNode).Value;
+      end;
     end;
 
     ntField:

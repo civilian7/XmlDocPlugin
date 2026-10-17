@@ -10,10 +10,13 @@ uses
   System.JSON,
   System.Win.Registry,
   Winapi.Windows,
+  Winapi.ActiveX,
   Vcl.Controls,
   Vcl.ExtCtrls,
   Vcl.Forms,
   Vcl.Edge,
+  Vcl.StdCtrls,
+  XmlDoc.Plugin.Browser,
   WebView2,
   DockForm,
   ToolsAPI,
@@ -27,7 +30,8 @@ type
   /// <summary>유닛 전체의 XML 문서를 탐색·편집할 수 있는 도킹 패널 (전체 브라우저 기반)</summary>
   TDocExplorerForm = class(TDockableForm)
   private
-    FBrowser: TEdgeBrowser;
+    FBrowser: TXmlDocBrowser;
+    FBrowserError: TLabel;
     FBrowserReady: Boolean;
     FCurrentFileName: string;
     FDocParser: TDocParser;
@@ -148,7 +152,13 @@ begin
     TPath.Combine(GetEnvironmentVariable('LOCALAPPDATA'), 'XmlDocPlugin'), 'WebView2');
   ForceDirectories(LDataDir);
 
-  FBrowser := TEdgeBrowser.Create(Self);
+  FBrowserError := TLabel.Create(Self);
+  FBrowserError.Parent := Self;
+  FBrowserError.Align := alTop;
+  FBrowserError.WordWrap := True;
+  FBrowserError.Visible := False;
+
+  FBrowser := TXmlDocBrowser.Create(Self);
   FBrowser.UserDataFolder := LDataDir;
   FBrowser.OnCreateWebViewCompleted := BrowserCreateWebViewCompleted;
   FBrowser.OnNavigationCompleted := BrowserNavigationCompleted;
@@ -157,34 +167,28 @@ begin
   FBrowser.Align := alClient;
 
   if not FBrowser.WebViewCreated then
-    FBrowser.ReinitializeWebView;
+    FBrowser.CreateWebView;
 end;
 
 procedure TDocExplorerForm.BrowserCreateWebViewCompleted(Sender: TCustomEdgeBrowser; AResult: HRESULT);
-var
-  LStream: TResourceStream;
-  LBytes: TBytes;
-  LHtml: string;
 begin
-  if AResult <> S_OK then
+  FBrowserReady := False;
+  FBrowserError.Visible := Winapi.Windows.Failed(AResult);
+  if Winapi.Windows.Failed(AResult) then
+  begin
+    FBrowserError.Caption := 'WebView2 could not start (0x' + IntToHex(AResult, 8) +
+      '). Install the WebView2 Runtime and place the matching WebView2Loader.dll beside XmlDocPlugin.bpl.';
     Exit;
-
+  end;
   try
-    LStream := TResourceStream.Create(
-      FindClassHInstance(TDocInspectorForm), CExplorerResourceName, RT_RCDATA);
-    try
-      SetLength(LBytes, LStream.Size);
-      LStream.ReadBuffer(LBytes, Length(LBytes));
-    finally
-      LStream.Free;
-    end;
+    FBrowser.LoadEditorResource(FindClassHInstance(TDocInspectorForm), CExplorerResourceName);
   except
     on E: Exception do
-      Exit;
+    begin
+      FBrowserError.Caption := 'Cannot load the documentation editor: ' + E.Message;
+      FBrowserError.Visible := True;
+    end;
   end;
-
-  LHtml := TEncoding.UTF8.GetString(LBytes);
-  FBrowser.NavigateToString(LHtml);
 end;
 
 procedure TDocExplorerForm.BrowserNavigationCompleted(Sender: TCustomEdgeBrowser;
@@ -194,12 +198,9 @@ begin
     Exit;
 
   FBrowserReady := True;
-
-  if FPendingLoad then
-  begin
-    FPendingLoad := False;
-    SendTreeToEditor;
-  end;
+  FBrowser.RestoreSections;
+  FPendingLoad := False;
+  RefreshFromCurrentEditor;
 end;
 
 procedure TDocExplorerForm.BrowserWebMessageReceived(Sender: TCustomEdgeBrowser;
@@ -212,18 +213,29 @@ var
   LFullName: string;
   LLine: Integer;
 begin
+  LJson := nil;
   Args.ArgsInterface.TryGetWebMessageAsString(LJson);
   if LJson = nil then
     Exit;
 
-  LMsg := TJSONObject.ParseJSONValue(string(LJson)) as TJSONObject;
+  try
+    LMsg := TJSONObject.ParseJSONValue(string(LJson)) as TJSONObject;
+  finally
+    CoTaskMemFree(LJson);
+  end;
   if LMsg = nil then
     Exit;
 
   try
     LMsgType := LMsg.GetValue<string>('type');
 
-    if LMsgType = 'docUpdated' then
+    if LMsgType = 'sectionStateChanged' then
+    begin
+      LDocObj := LMsg.GetValue<TJSONObject>('sections');
+      if Assigned(LDocObj) then
+        FBrowser.SaveSections(LDocObj.ToJSON);
+    end
+    else if LMsgType = 'docUpdated' then
     begin
       LDocObj := LMsg.GetValue<TJSONObject>('doc');
       LFullName := LMsg.GetValue<string>('elementFullName', '');
@@ -485,6 +497,8 @@ var
   LSource: string;
   LFileName: string;
 begin
+  if Assigned(FBrowser) and FBrowserReady then
+    FBrowser.ApplySettings;
   LEditor := TDocOTAWriter.GetCurrentSourceEditor;
   if not Assigned(LEditor) then
     Exit;

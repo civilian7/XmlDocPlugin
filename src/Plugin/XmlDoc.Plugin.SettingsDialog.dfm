@@ -1,4 +1,4 @@
-object SettingsDialog: TSettingsDialog
+﻿object SettingsDialog: TSettingsDialog
   Left = 0
   Top = 0
   BorderStyle = bsDialog
@@ -29,7 +29,7 @@ object SettingsDialog: TSettingsDialog
         Top = 16
         Width = 40
         Height = 15
-        Caption = 'Theme:'
+        Caption = 'Editor theme:'
       end
       object lblFontSize: TLabel
         Left = 16

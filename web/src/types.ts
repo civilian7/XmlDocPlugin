@@ -85,6 +85,7 @@ export type InboundMessage =
 
 /** WebView → Delphi 메시지 */
 export type OutboundMessage =
+  | { type: 'sectionStateChanged'; sections: Record<string, boolean> }
   | { type: 'docUpdated'; doc: DocModel }
   | { type: 'docUpdated'; doc: DocModel; elementFullName: string }
   | { type: 'jumpToLine'; line: number }

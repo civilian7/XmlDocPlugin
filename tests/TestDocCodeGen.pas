@@ -15,6 +15,7 @@ type
   TTestDocCodeGenerator = class
   private
     FModel: TXmlDocModel;
+    function CommentXml(const AComment: string): string;
 
   public
     [Setup]
@@ -65,6 +66,20 @@ type
 
 implementation
 
+function TTestDocCodeGenerator.CommentXml(const AComment: string): string;
+var
+  LLine, LTrimmed: string;
+begin
+  Result := '';
+  for LLine in AComment.Split([sLineBreak]) do
+  begin
+    if Trim(LLine) = '' then Continue;
+    LTrimmed := LLine.TrimLeft;
+    Assert.IsTrue(LTrimmed.StartsWith('/// '), 'Every comment line must have the documentation prefix');
+    Result := Result + Copy(LTrimmed, 5, MaxInt) + sLineBreak;
+  end;
+end;
+
 procedure TTestDocCodeGenerator.Setup;
 begin
   FModel := TXmlDocModel.Create;
@@ -87,9 +102,8 @@ begin
   FModel.Summary := '간단한 설명';
   LResult := TDocCodeGenerator.ModelToCommentBlock(FModel);
 
-  Assert.IsTrue(LResult.Contains('/// <summary>'));
-  Assert.IsTrue(LResult.Contains('/// 간단한 설명'));
-  Assert.IsTrue(LResult.Contains('/// </summary>'));
+  FModel.LoadFromXml(CommentXml(LResult));
+  Assert.AreEqual('간단한 설명', FModel.Summary);
 end;
 
 procedure TTestDocCodeGenerator.TestSummaryWithIndent;
@@ -99,8 +113,9 @@ begin
   FModel.Summary := '들여쓰기 테스트';
   LResult := TDocCodeGenerator.ModelToCommentBlock(FModel, 4);
 
-  Assert.IsTrue(LResult.Contains('    /// <summary>'));
-  Assert.IsTrue(LResult.Contains('    /// 들여쓰기 테스트'));
+  Assert.IsTrue(LResult.StartsWith('    /// '));
+  FModel.LoadFromXml(CommentXml(LResult));
+  Assert.AreEqual('들여쓰기 테스트', FModel.Summary);
 end;
 
 procedure TTestDocCodeGenerator.TestFullMethodComment;
@@ -139,9 +154,10 @@ begin
 
   LResult := TDocCodeGenerator.ModelToCommentBlock(FModel);
 
-  Assert.IsTrue(LResult.Contains('/// <exception cref="ENotFoundException">'));
-  Assert.IsTrue(LResult.Contains('/// 찾을 수 없음'));
-  Assert.IsTrue(LResult.Contains('/// </exception>'));
+  FModel.LoadFromXml(CommentXml(LResult));
+  Assert.AreEqual<NativeInt>(1, FModel.Exceptions.Count);
+  Assert.AreEqual('ENotFoundException', FModel.Exceptions[0].TypeRef);
+  Assert.AreEqual('찾을 수 없음', FModel.Exceptions[0].Description);
 end;
 
 procedure TTestDocCodeGenerator.TestWithSeeAlso;
@@ -204,7 +220,7 @@ begin
   LResult := TDocCodeGenerator.ApplyToSourceText(CSource, LElement, FModel);
 
   Assert.IsTrue(LResult.Contains('    /// <summary>'));
-  Assert.IsTrue(LResult.Contains('    /// 무언가를 수행합니다.'));
+  Assert.IsTrue(LResult.Contains('<summary>무언가를 수행합니다.</summary>'));
   Assert.IsTrue(LResult.Contains('    procedure DoSomething;'));
 end;
 

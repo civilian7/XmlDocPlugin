@@ -11,6 +11,9 @@ __recovery/
 *.rsm
 Win32/
 Win64/
+tests/BrowserSmoke.res
+src/Packages/12/*.delphilsp.json
+src/Packages/12/*.vrc
 
 # Delphi IDE files
 *.local

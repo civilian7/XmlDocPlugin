@@ -22,6 +22,24 @@
   --font-mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
 }
 
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #1e1e1e;
+  --bg-secondary: #252526;
+  --bg-hover: #37373d;
+  --border: #555555;
+  --border-light: #3e3e42;
+  --text: #eeeeee;
+  --text-muted: #b0b0b0;
+  --text-placeholder: #999999;
+  --accent: #75baff;
+  --accent-light: #163754;
+  --code-bg: #2d2d30;
+  --code-text: #f0a6be;
+  --heading-bg: #2d2d30;
+  --heading-border: #454545;
+}
+
 * {
   margin: 0;
   padding: 0;

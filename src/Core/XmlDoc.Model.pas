@@ -30,7 +30,7 @@ type
 
     procedure DoChanged;
     function  EscapeXml(const AText: string): string;
-    function  ExtractInlineContent(const ANode: IXMLNode): string;
+    function  ExtractInlineContent(const ANode: IXMLNode; AExcludeCode: Boolean = False): string;
     function  ExtractNodeText(const ANode: IXMLNode): string;
     function  GetIsEmpty: Boolean;
     procedure ParseChildNodes(const AParentNode: IXMLNode);
@@ -264,7 +264,7 @@ begin
   end;
 end;
 
-function TXmlDocModel.ExtractInlineContent(const ANode: IXMLNode): string;
+function TXmlDocModel.ExtractInlineContent(const ANode: IXMLNode; AExcludeCode: Boolean): string;
 var
   LSB: TStringBuilder;
   I: Integer;
@@ -276,7 +276,10 @@ begin
     begin
       LChild := ANode.ChildNodes[I];
 
-      if LChild.NodeType = ntText then
+      if AExcludeCode and (LChild.NodeName = 'code') then
+        Continue;
+
+      if LChild.NodeType in [ntText, ntCData] then
         LSB.Append(LChild.Text)
       else if LChild.NodeName = 'c' then
         LSB.AppendFormat('<c>%s</c>', [EscapeXml(LChild.Text)])
@@ -304,7 +307,7 @@ begin
           LSB.Append(LChild.Text);
       end
       else
-        LSB.Append(LChild.Text);
+        LSB.Append(ExtractInlineContent(LChild, AExcludeCode));
     end;
 
     Result := LSB.ToString;
@@ -450,7 +453,7 @@ begin
     else if LNode.NodeName = 'example' then
     begin
       LExample := Default(TExampleDoc);
-      LExample.Description := TrimDocText(LNode.Text);
+      LExample.Description := TrimDocText(ExtractInlineContent(LNode, True));
       if LNode.HasAttribute('title') then
         LExample.Title := LNode.Attributes['title'];
       LCodeNode := LNode.ChildNodes.FindNode('code');
@@ -683,8 +686,8 @@ begin
         LSB.AppendLine(FExamples[I].Description);
       if FExamples[I].Code <> '' then
       begin
-        LSB.AppendLine('<code>');
-        LSB.AppendLine(FExamples[I].Code);
+        LSB.Append('<code>');
+        LSB.Append(EscapeXml(FExamples[I].Code));
         LSB.AppendLine('</code>');
       end;
       LSB.AppendLine('</example>');
